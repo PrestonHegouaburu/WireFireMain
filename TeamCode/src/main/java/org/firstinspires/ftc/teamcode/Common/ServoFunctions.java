@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.Range;
 public class ServoFunctions {
     private LinearOpMode lom = null;
     private Servo pixelReleaseServo = null;
+    private Servo pixelReleaseServoExpan  = null;
     private Servo shoulderServo = null;
     private Servo elbowServo = null;
     private Servo clawServo = null;
@@ -19,6 +20,7 @@ public class ServoFunctions {
     private void Initialize()
     {
         pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
+        pixelReleaseServoExpan = lom.hardwareMap.get(Servo .class, "PixelReleaseServoExpan");
         //shoulderServo = lom.hardwareMap.get(Servo .class, "shoulder");
         //elbowServo = lom.hardwareMap.get(Servo .class, "elbow");
         //clawServo = lom.hardwareMap.get(Servo .class, "claw");
@@ -32,12 +34,21 @@ public class ServoFunctions {
         //shoulderServo.setPosition(0.0);
         //elbowServo.setPosition(1.0);
         //clawServo.setPosition(0.0);
+        pixelReleaseServoExpan.scaleRange(0.35, 0.85);
+        //shoulderServo.scaleRange(0.35, 0.9494);
+        //elbowServo.scaleRange(0.1244, 0.8050);
+        //clawServo.scaleRange(0.35, 0.85);
+
+        pixelReleaseServoExpan.setPosition(0.0);
+        //shoulderServo.setPosition(0.0);
+        //elbowServo.setPosition(1.0);
+        //clawServo.setPosition(0.0);
     }
       public void PutPixelInBackBoard()
     {
-        MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
+        MoveServoSmoothly(pixelReleaseServoExpan, 1.0, 800);
         lom.sleep(300);
-        MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
+        MoveServoSmoothly(pixelReleaseServoExpan, 0.0, 500);
     }
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {

@@ -143,6 +143,20 @@ public class WireFireTeleOp extends LinearOpMode {
                     isAutoDrivingToAprilTag = true;
                 }
             }
+            else if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
+            {
+                telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
+                telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
+                telemetry.addData("Bearing","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.bearing);
+                telemetry.addData("Yaw","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.yaw);
+
+                if (currentGamepad1.right_trigger > 0.5) {
+                    y      = SPEED_GAIN * (aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES);
+                    yaw    = -TURN_GAIN * aprilTagsFunctions.detectedTag.ftcPose.bearing;
+                    x      = STRAFE_GAIN * aprilTagsFunctions.detectedTag.ftcPose.yaw;
+                    isAutoDrivingToAprilTag = true;
+                }
+            }
 
             df.MoveRobot(x, y, yaw, isAutoDrivingToAprilTag ? 0.7 : speedFactor);
 
