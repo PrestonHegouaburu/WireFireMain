@@ -19,12 +19,27 @@ public class MotorFunctions {
         leftLiniarSlide = lom.hardwareMap.get(DcMotor.class, "leftLiniarSlide");
         rightLiniarSlide = lom.hardwareMap.get(DcMotor.class, "rightLiniarSlide");
     }
-    public void intake(float speed){
+    public void intake(double speed){
         intakeMotor.setPower(speed);
     }
-    public void Moveslide(float speed, float distance){
+    public void Moveslide(double speed){
         leftLiniarSlide.setPower(speed);
-        rightLiniarSlide.setPower(speed);
-    }
+        rightLiniarSlide.setPower(-speed);
 
+
+    }
+    public void moveSlideDistance(double speed, int distance){
+        leftLiniarSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftLiniarSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightLiniarSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightLiniarSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftLiniarSlide.setTargetPosition(distance);
+        rightLiniarSlide.setTargetPosition(distance);
+        Moveslide(speed);
+        while (leftLiniarSlide.isBusy() && rightLiniarSlide.isBusy()){
+
+        }
+        Moveslide(0);
+    }
 }

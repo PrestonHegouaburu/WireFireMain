@@ -37,7 +37,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Common.AprilTagsFunctions;
 import org.firstinspires.ftc.teamcode.Common.DrivingFunctions;
 import org.firstinspires.ftc.teamcode.Common.ServoFunctions;
-
+import org.firstinspires.ftc.teamcode.Common.MotorFunctions;
 @TeleOp(name="Wire Fire TeleOp", group="TeleOp")
 //@Disabled
 public class WireFireTeleOp extends LinearOpMode {
@@ -49,15 +49,17 @@ public class WireFireTeleOp extends LinearOpMode {
     private DrivingFunctions df = null;
     private ServoFunctions sf = null;
     private AprilTagsFunctions aprilTagsFunctions = null;
+    private MotorFunctions mf = null;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this);
         aprilTagsFunctions = new AprilTagsFunctions(this);
-
+        mf = new MotorFunctions(this);
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad previousGamepad1 = new Gamepad();
-
+        Gamepad currentGamepad2 = new Gamepad();
+        Gamepad previousGamepad2 = new Gamepad();
         waitForStart();
         runtime.reset();
 
@@ -73,7 +75,8 @@ public class WireFireTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
-
+            previousGamepad2.copy(currentGamepad2);
+            currentGamepad2.copy(gamepad2);
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double y = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
@@ -95,7 +98,17 @@ public class WireFireTeleOp extends LinearOpMode {
                 x = newX;
                 y = newY;
             }
+            if (currentGamepad2.left_bumper)
+                mf.Moveslide(1);
+            if (currentGamepad2.right_bumper)
+                mf.Moveslide(-1);
+            if (!currentGamepad2.left_bumper)
+                mf.Moveslide(0);
+            if (!currentGamepad2.right_bumper)
+                mf.Moveslide(0);
 
+            if (currentGamepad1.start)
+                sf.PutPixelInBackBoard();
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
             if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
