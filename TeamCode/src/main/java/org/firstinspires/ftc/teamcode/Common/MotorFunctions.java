@@ -1,13 +1,14 @@
 package org.firstinspires.ftc.teamcode.Common;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class MotorFunctions {
     private DcMotor intakeMotor = null;
-    private DcMotor leftLiniarSlide = null;
-    private DcMotor rightLiniarSlide = null;
+    private DcMotor leftLinearSlide = null;
+    private DcMotor rightLinearSlide = null;
     private LinearOpMode lom = null;
+    private static int MAX_DISTANCE_SLIDES = 1400;
 
     public MotorFunctions(LinearOpMode l)
     {
@@ -16,30 +17,49 @@ public class MotorFunctions {
     }
     public void Initialize(){
         intakeMotor  = lom.hardwareMap.get(DcMotor.class, "intakeMotor");
-        leftLiniarSlide = lom.hardwareMap.get(DcMotor.class, "leftLiniarSlide");
-        rightLiniarSlide = lom.hardwareMap.get(DcMotor.class, "rightLiniarSlide");
+        leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLiniarSlide");
+        rightLinearSlide = lom.hardwareMap.get(DcMotor.class, "rightLiniarSlide");
+
+        leftLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        leftLinearSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightLinearSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     public void intake(double speed){
         intakeMotor.setPower(speed);
     }
-    public void Moveslide(double speed){
-        leftLiniarSlide.setPower(speed);
-        rightLiniarSlide.setPower(-speed);
+    public void MoveSlide(double speed) {
+        leftLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-
+        if (speed < 0 && (leftLinearSlide.getCurrentPosition() <= 0 || rightLinearSlide.getCurrentPosition() <= 0))
+            speed = 0;
+        if (speed > 0 && (leftLinearSlide.getCurrentPosition() >= MAX_DISTANCE_SLIDES || rightLinearSlide.getCurrentPosition() >= MAX_DISTANCE_SLIDES))
+            speed = 0;
+        leftLinearSlide.setPower(speed);
+        rightLinearSlide.setPower(speed);
     }
-    public void moveSlideDistance(double speed, int distance){
-        leftLiniarSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftLiniarSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightLiniarSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightLiniarSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        leftLiniarSlide.setTargetPosition(distance);
-        rightLiniarSlide.setTargetPosition(distance);
-        Moveslide(speed);
-        while (leftLiniarSlide.isBusy() && rightLiniarSlide.isBusy()){
+    public void moveSlideDistance(double speed, int distance)
+    {
+        leftLinearSlide.setTargetPosition(distance);
+        rightLinearSlide.setTargetPosition(distance);
+        MoveSlide(speed);
+        while (leftLinearSlide.isBusy() && rightLinearSlide.isBusy()){
 
         }
-        Moveslide(0);
+        MoveSlide(0);
     }
+
+    public void PrintMotorPositions(double speed)
+    {
+        lom.telemetry.addData("Speed: ",  "%3.2f", speed);
+        lom.telemetry.addData("Left Slide Position: ",  "%7d", leftLinearSlide.getCurrentPosition());
+        lom.telemetry.addData("Right Front Position: ",  "%7d", rightLinearSlide.getCurrentPosition());
+        lom.telemetry.update();
+    }
+
 }

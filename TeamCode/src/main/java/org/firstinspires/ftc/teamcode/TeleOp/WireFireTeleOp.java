@@ -99,16 +99,12 @@ public class WireFireTeleOp extends LinearOpMode {
                 y = newY;
             }
             if (currentGamepad2.left_bumper)
-                mf.Moveslide(1);
+                mf.MoveSlide(1);
             if (currentGamepad2.right_bumper)
-                mf.Moveslide(-1);
-            if (!currentGamepad2.left_bumper)
-                mf.Moveslide(0);
-            if (!currentGamepad2.right_bumper)
-                mf.Moveslide(0);
+                mf.MoveSlide(-1);
+            if (!currentGamepad2.left_bumper && !currentGamepad2.right_bumper)
+                mf.MoveSlide(0);
 
-            if (currentGamepad1.start)
-                sf.PutPixelInBackBoard();
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
             if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
@@ -142,21 +138,7 @@ public class WireFireTeleOp extends LinearOpMode {
             }
 
             isAutoDrivingToAprilTag = false;
-            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER))
-            {
-                telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
-                telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
-                telemetry.addData("Bearing","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.bearing);
-                telemetry.addData("Yaw","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.yaw);
-
-                if (currentGamepad1.right_trigger > 0.5) {
-                    y      = SPEED_GAIN * (aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES);
-                    yaw    = -TURN_GAIN * aprilTagsFunctions.detectedTag.ftcPose.bearing;
-                    x      = STRAFE_GAIN * aprilTagsFunctions.detectedTag.ftcPose.yaw;
-                    isAutoDrivingToAprilTag = true;
-                }
-            }
-            else if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
+            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER) || aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
             {
                 telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
