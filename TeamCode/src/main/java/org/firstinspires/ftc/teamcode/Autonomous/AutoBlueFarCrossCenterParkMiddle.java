@@ -14,7 +14,7 @@ public class AutoBlueFarCrossCenterParkMiddle extends AutonomousOpenCV {
         isNear = false;
         centerCross = true;
         cornerPark = false;
-        useAprilTagsToDeliverPixel = true;
+        useAprilTagsToDeliverPixel = false;
         super.runOpMode();
     }
 }

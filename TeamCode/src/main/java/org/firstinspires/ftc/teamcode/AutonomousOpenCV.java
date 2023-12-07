@@ -30,7 +30,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     protected boolean runBallDetectionTest = false;
     protected boolean runEncoderTest = false;
     protected boolean runAutoDrivingTest = false;
-    static final double DRIVE_SPEED = 0.45;
+    static final double DRIVE_SPEED = 0.4;
     static final double TURN_SPEED = 0.5;
     private int desiredTag = 0;
 
@@ -86,7 +86,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             PushPixelSide(false);
-            strafeCorrection = isNear ? 0.5 : -5.5;
+            strafeCorrection = isNear ? 0.5 : -7;
             aimingDistance = isRed ? 12 : 0;
         }
         else if(circleDetection.GetBallPosition() == CircleDetection.BallPosition.CENTER)
@@ -101,7 +101,7 @@ public class AutonomousOpenCV extends LinearOpMode {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_RIGHT : AprilTagsFunctions.TAG_BLUE_RIGHT;
             PushPixelSide(true);
             strafeCorrection = isNear ? -1 : -6;
-            aimingDistance = isRed ? -3 : 12;
+            aimingDistance = isRed ? 0 : 12;
         }
         if(!isNear)
             CrossField(strafeCorrection);
@@ -141,10 +141,10 @@ public class AutonomousOpenCV extends LinearOpMode {
             df.DriveStraight(DRIVE_SPEED, isRed ? 13 : 14, 0, false);
         }
         else {
-            df.DriveStraight(DRIVE_SPEED, isRed ? 22 - strafeCorrection: -22 + strafeCorrection, 0, true);
+            df.DriveStraight(DRIVE_SPEED, isRed ? 23 - strafeCorrection: -24 + strafeCorrection, 0, true);
             df.DriveStraight(DRIVE_SPEED * 1.5, 48, 0, false);
             df.DriveStraight(DRIVE_SPEED * 1.5, isRed ? 54 : -54, 0, true);
-            df.DriveStraight(DRIVE_SPEED, -30, 0, false);
+            df.DriveStraight(DRIVE_SPEED, isRed ? -29 : -31, 0, false);
         }
     }
     protected void DeliverPixel(double aimingDistance, double strafeCorrection)
@@ -164,7 +164,7 @@ public class AutonomousOpenCV extends LinearOpMode {
             if(!centerCross)
                 df.DriveStraight(DRIVE_SPEED, isRed ? 32 + strafeCorrection : -32 + strafeCorrection, 0, true);
             else
-                df.DriveStraight(DRIVE_SPEED, isRed ? 6 + strafeCorrection : -6 + strafeCorrection, 0, true);
+                df.DriveStraight(DRIVE_SPEED, isRed ? 7 + strafeCorrection : -7 + strafeCorrection, 0, true);
         }
         // In the blue case we need to turn around 180 degrees to deliver the pixel (delivery is on the right of the robot)
         if (!isRed)
@@ -176,14 +176,14 @@ public class AutonomousOpenCV extends LinearOpMode {
             if(!centerCross)
                 df.DriveStraight(DRIVE_SPEED, isRed ? 12 + aimingDistance : 3 - aimingDistance, deliveryHeading, false);
             else
-                df.DriveStraight(DRIVE_SPEED, isRed ? 2 + aimingDistance : 3 - aimingDistance, deliveryHeading, false);
+                df.DriveStraight(DRIVE_SPEED, isRed ? 4 + aimingDistance : 6 - aimingDistance, deliveryHeading, false);
         }
         else {
             df.DriveStraight(DRIVE_SPEED, 7.5, deliveryHeading, false);
         }
 
         // Strafes right towards the backboard (almost touching it)
-        df.DriveStraight(DRIVE_SPEED * 0.6, 11, deliveryHeading, true);
+        df.DriveStraight(DRIVE_SPEED * 0.6, 12, deliveryHeading, true);
         sf.PutPixelInBackBoard();
         // Gets away from the board after delivering pixel
         df.DriveStraight(DRIVE_SPEED, -6, deliveryHeading, true);
@@ -198,9 +198,9 @@ public class AutonomousOpenCV extends LinearOpMode {
             df.DriveStraight(DRIVE_SPEED, isRed ? -26 : 14, deliveryHeading, false);
         }
         else{
-            df.DriveStraight(DRIVE_SPEED, isRed ? 20 : -37, deliveryHeading, false);
+            df.DriveStraight(DRIVE_SPEED, isRed ? 22 : -37, deliveryHeading, false);
         }
-        df.DriveStraight(DRIVE_SPEED, 18, deliveryHeading, true);
+        df.DriveStraight(DRIVE_SPEED, 17, deliveryHeading, true);
     }
     private void RunEncoderTest()
     {
@@ -213,8 +213,12 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void StopStreaming()
     {
-        webcam.stopStreaming();
-        webcam.closeCameraDevice();
+        try {
+            webcam.stopStreaming();
+            webcam.closeCameraDevice();
+        }
+        catch (Exception e)
+        {}
     }
     private void UpdateCircleDetectionTelemetry(int tries)
     {
