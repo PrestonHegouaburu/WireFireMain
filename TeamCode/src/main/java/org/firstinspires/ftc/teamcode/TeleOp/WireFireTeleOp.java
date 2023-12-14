@@ -50,11 +50,12 @@ public class WireFireTeleOp extends LinearOpMode {
     private ServoFunctions sf = null;
     private AprilTagsFunctions aprilTagsFunctions = null;
     private MotorFunctions mf = null;
+    private double intakeSpeed = 0.1;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this);
-        aprilTagsFunctions = new AprilTagsFunctions(this);
+        //aprilTagsFunctions = new AprilTagsFunctions(this);
         mf = new MotorFunctions(this);
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad previousGamepad1 = new Gamepad();
@@ -98,22 +99,36 @@ public class WireFireTeleOp extends LinearOpMode {
                 x = newX;
                 y = newY;
             }
+
+            if (currentGamepad2.x)
+                mf.intake(intakeSpeed);
+            if (currentGamepad2.b)
+                mf.intake(-intakeSpeed);
+            if(!currentGamepad2.x && !currentGamepad2.b)
+                mf.intake(0);
+            if (currentGamepad2.y && !previousGamepad2.y && intakeSpeed <= 0.9)
+                intakeSpeed += 0.05;
+            if (currentGamepad2.a && !previousGamepad2.a && intakeSpeed >= 0.1)
+                intakeSpeed -= 0.05 ;
+
             if (currentGamepad2.left_bumper)
-                mf.MoveSlide(1);
+                mf.MoveSlide(0.5);
             if (currentGamepad2.right_bumper)
-                mf.MoveSlide(-1);
+                mf.MoveSlide(-0.5);
             if (!currentGamepad2.left_bumper && !currentGamepad2.right_bumper)
                 mf.MoveSlide(0);
+            if (currentGamepad2.start && !previousGamepad2.start)
+                sf.PutPixelInBackBoard();
+            if (currentGamepad2.left_trigger > 0.5)
+                sf.MovePixelReleaseServoRelative(-0.01);
+            if (currentGamepad2.right_trigger > 0.5)
+                sf.MovePixelReleaseServoRelative(0.01);
+
 
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
             if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
                 speedFactor = 1;
-            if (currentGamepad1.start)
-                sf.PutPixelInBackBoard();
-
-            if (currentGamepad1.left_trigger > 0.5)
-                sf.MovePixelReleaseServoRelative(-0.01);
 
             if (!isAutoTurning &&
                     ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
@@ -138,7 +153,7 @@ public class WireFireTeleOp extends LinearOpMode {
             }
 
             isAutoDrivingToAprilTag = false;
-            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER) || aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
+/*            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER) || aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
             {
                 telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
                 telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
@@ -150,13 +165,18 @@ public class WireFireTeleOp extends LinearOpMode {
                     yaw    = -TURN_GAIN * aprilTagsFunctions.detectedTag.ftcPose.bearing;
                     x      = STRAFE_GAIN * aprilTagsFunctions.detectedTag.ftcPose.yaw;
                     isAutoDrivingToAprilTag = true;
+                    df.DriveStraight(0.7, aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES, botHeading, false);
+                    df.TurnToHeading(0.7, -90);
                 }
             }
-
+*/
             df.MoveRobot(x, y, yaw, isAutoDrivingToAprilTag ? 0.7 : speedFactor);
 
             telemetry.addData("Speed Factor", "%4.2f", speedFactor);
+            telemetry.addData("IntakeSpeed", "%4.2f", intakeSpeed);
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
+            telemetry.addData("Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
+
             telemetry.update();
         }
     }

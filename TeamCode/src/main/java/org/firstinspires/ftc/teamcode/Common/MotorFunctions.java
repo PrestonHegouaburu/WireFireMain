@@ -17,8 +17,8 @@ public class MotorFunctions {
     }
     public void Initialize(){
         intakeMotor  = lom.hardwareMap.get(DcMotor.class, "intakeMotor");
-        leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLiniarSlide");
-        rightLinearSlide = lom.hardwareMap.get(DcMotor.class, "rightLiniarSlide");
+        leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLinearSlide");
+        rightLinearSlide = lom.hardwareMap.get(DcMotor.class, "rightLinearSlide");
 
         leftLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
         rightLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);

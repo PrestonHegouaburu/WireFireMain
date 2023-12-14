@@ -33,11 +33,11 @@ public class AutonomousOpenCV extends LinearOpMode {
     static final double DRIVE_SPEED = 0.4;
     static final double TURN_SPEED = 0.5;
     private int desiredTag = 0;
-    private boolean isSlideRobot = df.isSlideRobot();
-    double forwardCorrection = isSlideRobot ? 5.0 : 0.0; // Difference in inches between old and slide robot. Slide robot has pixel 6 inches forward
+    double forwardCorrection;
     private void Initialize() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this);
+        forwardCorrection = df.isSlideRobot() ? 5.0 : 0.0; // Difference in inches between old and slide robot. Slide robot has pixel 6 inches forward
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -87,7 +87,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             PushPixelSide(false);
-            if (!isSlideRobot){
+            if (!df.isSlideRobot()){
                 strafeCorrection = isNear ? 0.5 : -7;
                 aimingDistance = isRed ? 12 : 0;
             }
@@ -101,7 +101,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
-            if (!isSlideRobot) {
+            if (!df.isSlideRobot()) {
                 strafeCorrection = isNear ? 0 : -3;
                 aimingDistance = 6;
             }
@@ -114,7 +114,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_RIGHT : AprilTagsFunctions.TAG_BLUE_RIGHT;
             PushPixelSide(true);
-            if (!isSlideRobot) {
+            if (!df.isSlideRobot()) {
                 strafeCorrection = isNear ? -1 : -6;
                 aimingDistance = isRed ? 0 : 12;
             }
@@ -150,8 +150,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void PushPixelCenter()
     {
-        df.DriveStraight(DRIVE_SPEED, , 0, false);
-        df.DriveStraight(DRIVE_SPEED, isSlideRobot ? -11: -17, 0, false);
+        df.DriveStraight(DRIVE_SPEED,34 - forwardCorrection , 0, false);
+        df.DriveStraight(DRIVE_SPEED, -17 + forwardCorrection, 0, false);
     }
     private void CrossField(double strafeCorrection)
     {
