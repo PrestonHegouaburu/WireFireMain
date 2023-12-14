@@ -33,7 +33,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     static final double DRIVE_SPEED = 0.4;
     static final double TURN_SPEED = 0.5;
     private int desiredTag = 0;
-
+    private boolean isSlideRobot = df.isSlideRobot();
+    double forwardCorrection = isSlideRobot ? 5.0 : 0.0; // Difference in inches between old and slide robot. Slide robot has pixel 6 inches forward
     private void Initialize() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this);
@@ -86,22 +87,41 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             PushPixelSide(false);
-            strafeCorrection = isNear ? 0.5 : -7;
-            aimingDistance = isRed ? 12 : 0;
+            if (!isSlideRobot){
+                strafeCorrection = isNear ? 0.5 : -7;
+                aimingDistance = isRed ? 12 : 0;
+            }
+            else
+            {
+
+            }
+
         }
         else if(circleDetection.GetBallPosition() == CircleDetection.BallPosition.CENTER)
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
-            strafeCorrection = isNear ? 0 : -3;
-            aimingDistance = 6;
+            if (!isSlideRobot) {
+                strafeCorrection = isNear ? 0 : -3;
+                aimingDistance = 6;
+            }
+            else
+            {
+
+            }
         }
         else if(circleDetection.GetBallPosition() == CircleDetection.BallPosition.RIGHT)
         {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_RIGHT : AprilTagsFunctions.TAG_BLUE_RIGHT;
             PushPixelSide(true);
-            strafeCorrection = isNear ? -1 : -6;
-            aimingDistance = isRed ? 0 : 12;
+            if (!isSlideRobot) {
+                strafeCorrection = isNear ? -1 : -6;
+                aimingDistance = isRed ? 0 : 12;
+            }
+            else
+            {
+
+            }
         }
         if(!isNear)
             CrossField(strafeCorrection);
@@ -119,10 +139,10 @@ public class AutonomousOpenCV extends LinearOpMode {
         else
             angle = isRight ? -35 : 35;
 
-        df.DriveStraight(DRIVE_SPEED, 6, 0, false);
+        df.DriveStraight(DRIVE_SPEED, 6 - forwardCorrection, 0, false);
 
         if (!movingAwayFromTruss)
-            df.DriveStraight(DRIVE_SPEED, isRight ? -10.5 : 10.5, 0, true);
+            df.DriveStraight(DRIVE_SPEED, isRight ? -10.5 + forwardCorrection : 10.5 - forwardCorrection, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
         df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 25: 32, angle, false);
         df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -13: -18, angle, false);
@@ -130,8 +150,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void PushPixelCenter()
     {
-        df.DriveStraight(DRIVE_SPEED, 34, 0, false);
-        df.DriveStraight(DRIVE_SPEED, -17, 0, false);
+        df.DriveStraight(DRIVE_SPEED, , 0, false);
+        df.DriveStraight(DRIVE_SPEED, isSlideRobot ? -11: -17, 0, false);
     }
     private void CrossField(double strafeCorrection)
     {

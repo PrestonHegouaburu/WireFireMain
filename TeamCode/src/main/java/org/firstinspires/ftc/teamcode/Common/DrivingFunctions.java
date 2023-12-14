@@ -42,10 +42,13 @@ public class DrivingFunctions {
             leftFrontDrive = lom.hardwareMap.get(DcMotor.class, "b-frontleft");
             isRobotA = false; // If this line is executed, the above call didn't fail, so this is RobotB
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             isRobotA = true;
         }
+    }
+    public boolean isSlideRobot()
+    {
+        return !isRobotA;
     }
     private void Initialize()
     {
