@@ -6,49 +6,30 @@ import com.qualcomm.robotcore.util.Range;
 
 public class ServoFunctions {
     private LinearOpMode lom = null;
+    private DrivingFunctions df;
     private Servo pixelReleaseServo = null;
-    private Servo pixelReleaseServoExpan  = null;
-    private Servo shoulderServo = null;
-    private Servo elbowServo = null;
-    private Servo clawServo = null;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
-    public ServoFunctions(LinearOpMode l)
+    public ServoFunctions(LinearOpMode l, DrivingFunctions df)
     {
         lom = l;
+        this.df = df;
         Initialize();
     }
     private void Initialize()
     {
-        //pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
-        pixelReleaseServoExpan = lom.hardwareMap.get(Servo .class, "PixelReleaseServoExpan");
-        //shoulderServo = lom.hardwareMap.get(Servo .class, "shoulder");
-        //elbowServo = lom.hardwareMap.get(Servo .class, "elbow");
-        //clawServo = lom.hardwareMap.get(Servo .class, "claw");
+        pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
+        if(df.isSlideRobot())
+            pixelReleaseServo.scaleRange(0.3, 0.94);
+        else
+            pixelReleaseServo.scaleRange(0.35, 0.85);
 
-        //pixelReleaseServo.scaleRange(0.35, 0.85);
-        //shoulderServo.scaleRange(0.35, 0.9494);
-        //elbowServo.scaleRange(0.1244, 0.8050);
-        //clawServo.scaleRange(0.35, 0.85);
-
-        //pixelReleaseServo.setPosition(0.0);
-        //shoulderServo.setPosition(0.0);
-        //elbowServo.setPosition(1.0);
-        //clawServo.setPosition(0.0);
-        pixelReleaseServoExpan.scaleRange(0.3, 0.94);
-        //shoulderServo.scaleRange(0.35, 0.9494);
-        //elbowServo.scaleRange(0.1244, 0.8050);
-        //clawServo.scaleRange(0.35, 0.85);
-
-        pixelReleaseServoExpan.setPosition(0.0);
-        //shoulderServo.setPosition(0.0);
-        //elbowServo.setPosition(1.0);
-        //clawServo.setPosition(0.0);
+        pixelReleaseServo.setPosition(0.0);
     }
     public void PutPixelInBackBoard()
     {
-        MoveServoSmoothly(pixelReleaseServoExpan, 1.0, 800);
+        MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
         lom.sleep(300);
-        MoveServoSmoothly(pixelReleaseServoExpan, 0.0, 500);
+        MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
     }
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {
@@ -64,37 +45,13 @@ public class ServoFunctions {
         }
         s.setPosition(endPosition);
     }
-    public void MoveShoulderRelative(double move)
-    {
-        MoveServoSmoothly(shoulderServo, shoulderServo.getPosition() + move, 10);
-    }
-    public void MoveElbowRelative(double move)
-    {
-        MoveServoSmoothly(elbowServo, elbowServo.getPosition() + move, 10);
-    }
-    public void MoveClawRelative(double move)
-    {
-        MoveServoSmoothly(clawServo, clawServo.getPosition() + move, 10);
-    }
 
     public void MovePixelReleaseServoRelative(double move)
     {
-        MoveServoSmoothly(pixelReleaseServoExpan, pixelReleaseServoExpan.getPosition() + move, 100);
+        MoveServoSmoothly(pixelReleaseServo, pixelReleaseServo.getPosition() + move, 100);
     }
     public double GetPixelReleaseServoPosition()
     {
-        return pixelReleaseServoExpan.getPosition();
-    }
-    public double GetShoulderServoPosition()
-    {
-        return shoulderServo.getPosition();
-    }
-    public double GetElbowServoPosition()
-    {
-        return elbowServo.getPosition();
-    }
-    public double GetClawServoPosition()
-    {
-        return clawServo.getPosition();
+        return pixelReleaseServo.getPosition();
     }
 }

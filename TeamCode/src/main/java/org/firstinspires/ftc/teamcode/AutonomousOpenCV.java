@@ -36,7 +36,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     double forwardCorrection;
     private void Initialize() {
         df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this);
+        sf = new ServoFunctions(this, df);
         forwardCorrection = df.isSlideRobot() ? 5.0 : 0.0; // Difference in inches between old and slide robot. Slide robot has pixel 6 inches forward
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());

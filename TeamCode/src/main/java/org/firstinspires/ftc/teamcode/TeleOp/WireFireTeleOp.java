@@ -48,13 +48,12 @@ public class WireFireTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
     private DrivingFunctions df = null;
     private ServoFunctions sf = null;
-    private AprilTagsFunctions aprilTagsFunctions = null;
     private MotorFunctions mf = null;
     private double intakeSpeed = 0.1;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this);
+        sf = new ServoFunctions(this, df);
         //aprilTagsFunctions = new AprilTagsFunctions(this);
         mf = new MotorFunctions(this);
         Gamepad currentGamepad1 = new Gamepad();
@@ -67,7 +66,6 @@ public class WireFireTeleOp extends LinearOpMode {
         double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
         double kp = -0.033;
         boolean isAutoTurning = false;
-        boolean isAutoDrivingToAprilTag = false;
         double autoTurningStart = 0.0;
         double autoTurningTarget = 0.0;
         double timeoutMilliseconds = 0;
@@ -117,13 +115,13 @@ public class WireFireTeleOp extends LinearOpMode {
                 mf.MoveSlide(-0.5);
             if (!currentGamepad2.left_bumper && !currentGamepad2.right_bumper)
                 mf.MoveSlide(0);
-            if (currentGamepad2.start && !previousGamepad2.start)
-                sf.PutPixelInBackBoard();
             if (currentGamepad2.left_trigger > 0.5)
                 sf.MovePixelReleaseServoRelative(-0.01);
             if (currentGamepad2.right_trigger > 0.5)
                 sf.MovePixelReleaseServoRelative(0.01);
 
+            if (currentGamepad1.start && !previousGamepad1.start)
+                sf.PutPixelInBackBoard();
 
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
@@ -152,29 +150,12 @@ public class WireFireTeleOp extends LinearOpMode {
                 }
             }
 
-            isAutoDrivingToAprilTag = false;
-/*            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER) || aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
-            {
-                telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
-                telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
-                telemetry.addData("Bearing","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.bearing);
-                telemetry.addData("Yaw","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.yaw);
-
-                if (currentGamepad1.right_trigger > 0.5) {
-                    y      = SPEED_GAIN * (aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES);
-                    yaw    = -TURN_GAIN * aprilTagsFunctions.detectedTag.ftcPose.bearing;
-                    x      = STRAFE_GAIN * aprilTagsFunctions.detectedTag.ftcPose.yaw;
-                    isAutoDrivingToAprilTag = true;
-                    df.DriveStraight(0.7, aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES, botHeading, false);
-                    df.TurnToHeading(0.7, -90);
-                }
-            }
-*/
-            df.MoveRobot(x, y, yaw, isAutoDrivingToAprilTag ? 0.7 : speedFactor);
+            df.MoveRobot(x, y, yaw, speedFactor);
 
             telemetry.addData("Speed Factor", "%4.2f", speedFactor);
             telemetry.addData("IntakeSpeed", "%4.2f", intakeSpeed);
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
+            telemetry.addData("Distance in mm", "%4.2f", df.GetDistanceFromSensorInMM());
             telemetry.addData("Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
 
             telemetry.update();

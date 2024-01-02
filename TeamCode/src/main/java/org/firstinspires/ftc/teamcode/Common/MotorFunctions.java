@@ -16,9 +16,15 @@ public class MotorFunctions {
         Initialize();
     }
     public void Initialize(){
-        intakeMotor  = lom.hardwareMap.get(DcMotor.class, "intakeMotor");
-        leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLinearSlide");
-        rightLinearSlide = lom.hardwareMap.get(DcMotor.class, "rightLinearSlide");
+        try {
+            intakeMotor = lom.hardwareMap.get(DcMotor.class, "intakeMotor");
+            leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLinearSlide");
+            rightLinearSlide = lom.hardwareMap.get(DcMotor.class, "rightLinearSlide");
+        }
+        catch (Exception e)
+        {
+            return; // It means that this robot does not have those motors configured
+        }
 
         leftLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
         rightLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -29,9 +35,15 @@ public class MotorFunctions {
         rightLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
     public void intake(double speed){
+        if (intakeMotor ==  null)
+            return;
+
         intakeMotor.setPower(speed);
     }
     public void MoveSlide(double speed) {
+        if (leftLinearSlide ==  null)
+            return;
+
         leftLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -45,6 +57,9 @@ public class MotorFunctions {
 
     public void moveSlideDistance(double speed, int distance)
     {
+        if (leftLinearSlide ==  null)
+            return;
+
         leftLinearSlide.setTargetPosition(distance);
         rightLinearSlide.setTargetPosition(distance);
         MoveSlide(speed);
@@ -56,6 +71,8 @@ public class MotorFunctions {
 
     public void PrintMotorPositions(double speed)
     {
+        if (leftLinearSlide ==  null)
+            return;
         lom.telemetry.addData("Speed: ",  "%3.2f", speed);
         lom.telemetry.addData("Left Slide Position: ",  "%7d", leftLinearSlide.getCurrentPosition());
         lom.telemetry.addData("Right Front Position: ",  "%7d", rightLinearSlide.getCurrentPosition());
