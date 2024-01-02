@@ -203,7 +203,10 @@ public class AutonomousOpenCV extends LinearOpMode {
         }
 
         // Strafes right towards the backboard (almost touching it)
-        df.DriveStraight(DRIVE_SPEED * 0.6, 12, deliveryHeading, true);
+        // Ideal distance measured by sensor is 2.2 inches
+        double dist = df.GetDistanceFromSensorInInches();
+        double distanceToDrive = dist > 4.0 && dist < 30.0 ? dist - 0.9 : 12;
+        df.DriveStraight(DRIVE_SPEED * 0.6, distanceToDrive, deliveryHeading, true);
         sf.PutPixelInBackBoard();
         // Gets away from the board after delivering pixel
         df.DriveStraight(DRIVE_SPEED, -6, deliveryHeading, true);

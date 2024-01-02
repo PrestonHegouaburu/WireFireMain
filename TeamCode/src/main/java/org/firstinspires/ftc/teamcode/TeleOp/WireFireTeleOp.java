@@ -155,7 +155,7 @@ public class WireFireTeleOp extends LinearOpMode {
             telemetry.addData("Speed Factor", "%4.2f", speedFactor);
             telemetry.addData("IntakeSpeed", "%4.2f", intakeSpeed);
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
-            telemetry.addData("Distance in mm", "%4.2f", df.GetDistanceFromSensorInMM());
+            telemetry.addData("Distance in inches", "%4.2f", df.GetDistanceFromSensorInInches());
             telemetry.addData("Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
 
             telemetry.update();

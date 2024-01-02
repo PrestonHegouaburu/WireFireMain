@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode.Common;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class DrivingFunctions {
     private boolean isRobotA = false;
@@ -14,7 +16,7 @@ public class DrivingFunctions {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    //private DistanceSensor distanceSensor = null;
+    private DistanceSensor distanceSensor = null;
     private IMU imu = null;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
@@ -59,13 +61,13 @@ public class DrivingFunctions {
         leftBackDrive  = lom.hardwareMap.get(DcMotor.class, "backleft");
         rightFrontDrive = lom.hardwareMap.get(DcMotor.class, "frontright");
         rightBackDrive = lom.hardwareMap.get(DcMotor.class, "backright");
-        imu = lom.hardwareMap.get(IMU.class, "imu");
         try {
-            //distanceSensor = lom.hardwareMap.get(DistanceSensor.class, "distanceSensor");
+            distanceSensor = lom.hardwareMap.get(DistanceSensor.class, "distanceSensor");
         }
         catch(Exception e) {
         }
 
+        imu = lom.hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -91,11 +93,11 @@ public class DrivingFunctions {
         ResetYaw();
     }
 
-    public double GetDistanceFromSensorInMM()
+    public double GetDistanceFromSensorInInches()
     {
-//        if (distanceSensor == null)
+        if (distanceSensor == null)
             return 0.0;
-//        return distanceSensor.getDistance(DistanceUnit.MM);
+        return distanceSensor.getDistance(DistanceUnit.INCH);
     }
     public void ResetYaw()
     {
