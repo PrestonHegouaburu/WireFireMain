@@ -41,32 +41,24 @@ import org.firstinspires.ftc.teamcode.Common.MotorFunctions;
 @TeleOp(name="Wire Fire TeleOp", group="TeleOp")
 //@Disabled
 public class WireFireTeleOp extends LinearOpMode {
-    private final double DESIRED_DISTANCE_TO_APRIL_TAG_INCHES = 12.0;
     private final double SPEED_GAIN  =  0.045  ;   //  Forward Speed Control "Gain". eg: Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
     private final double STRAFE_GAIN =  0.025 ;   //  Strafe Speed Control "Gain".  eg: Ramp up to 25% power at a 25 degree Yaw error.   (0.25 / 25.0)
     private final double TURN_GAIN   =  0.025  ;   //  Turn Control "Gain".  eg: Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
     private final ElapsedTime runtime = new ElapsedTime();
     private DrivingFunctions df = null;
     private ServoFunctions sf = null;
-    private AprilTagsFunctions aprilTagsFunctions = null;
-    private MotorFunctions mf = null;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this);
-        aprilTagsFunctions = new AprilTagsFunctions(this);
-        mf = new MotorFunctions(this);
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad previousGamepad1 = new Gamepad();
-        Gamepad currentGamepad2 = new Gamepad();
-        Gamepad previousGamepad2 = new Gamepad();
         waitForStart();
         runtime.reset();
 
         double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
         double kp = -0.033;
         boolean isAutoTurning = false;
-        boolean isAutoDrivingToAprilTag = false;
         double autoTurningStart = 0.0;
         double autoTurningTarget = 0.0;
         double timeoutMilliseconds = 0;
@@ -75,8 +67,6 @@ public class WireFireTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
-            previousGamepad2.copy(currentGamepad2);
-            currentGamepad2.copy(gamepad2);
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double y = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
@@ -98,12 +88,6 @@ public class WireFireTeleOp extends LinearOpMode {
                 x = newX;
                 y = newY;
             }
-            if (currentGamepad2.left_bumper)
-                mf.MoveSlide(1);
-            if (currentGamepad2.right_bumper)
-                mf.MoveSlide(-1);
-            if (!currentGamepad2.left_bumper && !currentGamepad2.right_bumper)
-                mf.MoveSlide(0);
 
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
@@ -111,9 +95,6 @@ public class WireFireTeleOp extends LinearOpMode {
                 speedFactor = 1;
             if (currentGamepad1.start)
                 sf.PutPixelInBackBoard();
-
-            if (currentGamepad1.left_trigger > 0.5)
-                sf.MovePixelReleaseServoRelative(-0.01);
 
             if (!isAutoTurning &&
                     ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
@@ -137,23 +118,7 @@ public class WireFireTeleOp extends LinearOpMode {
                 }
             }
 
-            isAutoDrivingToAprilTag = false;
-            if(aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_RED_CENTER) || aprilTagsFunctions.DetectAprilTag(aprilTagsFunctions.TAG_BLUE_CENTER))
-            {
-                telemetry.addData("Found", "ID %d (%s)", aprilTagsFunctions.detectedTag.id, aprilTagsFunctions.detectedTag.metadata.name);
-                telemetry.addData("Range",  "%5.1f inches", aprilTagsFunctions.detectedTag.ftcPose.range);
-                telemetry.addData("Bearing","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.bearing);
-                telemetry.addData("Yaw","%3.2f degrees", aprilTagsFunctions.detectedTag.ftcPose.yaw);
-
-                if (currentGamepad1.right_trigger > 0.5) {
-                    y      = SPEED_GAIN * (aprilTagsFunctions.detectedTag.ftcPose.range - DESIRED_DISTANCE_TO_APRIL_TAG_INCHES);
-                    yaw    = -TURN_GAIN * aprilTagsFunctions.detectedTag.ftcPose.bearing;
-                    x      = STRAFE_GAIN * aprilTagsFunctions.detectedTag.ftcPose.yaw;
-                    isAutoDrivingToAprilTag = true;
-                }
-            }
-
-            df.MoveRobot(x, y, yaw, isAutoDrivingToAprilTag ? 0.7 : speedFactor);
+            df.MoveRobot(x, y, yaw, speedFactor);
 
             telemetry.addData("Speed Factor", "%4.2f", speedFactor);
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
