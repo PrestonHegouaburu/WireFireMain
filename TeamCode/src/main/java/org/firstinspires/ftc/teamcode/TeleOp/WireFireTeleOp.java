@@ -82,7 +82,7 @@ public class WireFireTeleOp extends LinearOpMode {
             double yaw = gamepad1.right_stick_x;
 
             if (gamepad1.back)
-                df.ResetYaw();
+                sf.LaunchPlane();
 
             double botHeading = df.GetHeading();
             double rotatingSpeed = df.GetRotatingSpeed();
@@ -123,6 +123,12 @@ public class WireFireTeleOp extends LinearOpMode {
             if (currentGamepad1.start && !previousGamepad1.start)
                 sf.PutPixelInBackBoard();
 
+            if(gamepad1.right_trigger > 0.5)
+                sf.MovePlaneLauncherServoRelative(0.01);
+            if(gamepad1.left_trigger > 0.5)
+                sf.MovePlaneLauncherServoRelative(-0.01);
+
+
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
                 speedFactor = 0.5;
             if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
@@ -158,7 +164,8 @@ public class WireFireTeleOp extends LinearOpMode {
             telemetry.addData("Right Slide Position", "%4.2f", mf.GetRightSlidePosition());
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
             //telemetry.addData("Distance in inches", "%4.2f", df.GetDistanceFromSensorInInches());
-            telemetry.addData("Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
+            telemetry.addData("Pixel Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
+            telemetry.addData("Plane Launch position", "%4.2f", sf.GetPlaneLauncherServoPosition());
 
             telemetry.update();
         }

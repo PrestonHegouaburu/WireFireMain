@@ -20,21 +20,29 @@ public class ServoFunctions {
     {
         try {
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
-           // planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
+            planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
             if(df.isSlideRobot()) {
                 pixelReleaseServo.scaleRange(0.3, 0.94);
             }
             else {
                 pixelReleaseServo.scaleRange(0.35, 0.85);
-                //planeLaunchServo.scaleRange(0, 1);
+                planeLaunchServo.scaleRange(0.2, 0.8);
             }
 
             pixelReleaseServo.setPosition(0.0);
+            planeLaunchServo.setPosition(0.0);
         }
         catch(Exception e) {
 
         }
-
+    }
+    public void LaunchPlane()
+    {
+        if(planeLaunchServo == null)
+            return;
+        planeLaunchServo.setPosition(1.0);
+        lom.sleep(200);
+        planeLaunchServo.setPosition(0.0);
     }
     public void PutPixelInBackBoard()
     {
@@ -42,6 +50,7 @@ public class ServoFunctions {
         lom.sleep(300);
         MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
     }
+
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {
         if (s == null)
@@ -65,6 +74,13 @@ public class ServoFunctions {
             return;
         MoveServoSmoothly(pixelReleaseServo, pixelReleaseServo.getPosition() + move, 100);
     }
+    public void MovePlaneLauncherServoRelative(double move)
+    {
+        if (planeLaunchServo == null)
+            return;
+        MoveServoSmoothly(planeLaunchServo, planeLaunchServo.getPosition() + move, 100);
+    }
+
     public double GetPixelReleaseServoPosition()
     {
         if (pixelReleaseServo == null)
