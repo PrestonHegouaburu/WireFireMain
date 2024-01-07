@@ -110,9 +110,9 @@ public class WireFireTeleOp extends LinearOpMode {
                 intakeSpeed -= 0.05 ;
 
             if (currentGamepad2.left_bumper)
-                mf.MoveSlide(0.5);
-            if (currentGamepad2.right_bumper)
                 mf.MoveSlide(-0.5);
+            if (currentGamepad2.right_bumper)
+                mf.MoveSlide(0.5);
             if (!currentGamepad2.left_bumper && !currentGamepad2.right_bumper)
                 mf.MoveSlide(0);
             if (currentGamepad2.left_trigger > 0.5)
@@ -154,8 +154,10 @@ public class WireFireTeleOp extends LinearOpMode {
 
             telemetry.addData("Speed Factor", "%4.2f", speedFactor);
             telemetry.addData("IntakeSpeed", "%4.2f", intakeSpeed);
+            telemetry.addData("Left Slide Position", "%4.2f", mf.GetLeftSlidePosition());
+            telemetry.addData("Right Slide Position", "%4.2f", mf.GetRightSlidePosition());
             telemetry.addData("Bot Heading", "%4.2f", botHeading);
-            telemetry.addData("Distance in inches", "%4.2f", df.GetDistanceFromSensorInInches());
+            //telemetry.addData("Distance in inches", "%4.2f", df.GetDistanceFromSensorInInches());
             telemetry.addData("Servo position", "%4.2f", sf.GetPixelReleaseServoPosition());
 
             telemetry.update();

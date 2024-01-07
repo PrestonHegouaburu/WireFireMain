@@ -8,7 +8,7 @@ public class MotorFunctions {
     private DcMotor leftLinearSlide = null;
     private DcMotor rightLinearSlide = null;
     private LinearOpMode lom = null;
-    private static int MAX_DISTANCE_SLIDES = 1400;
+    private static int MAX_DISTANCE_SLIDES = 2200;
 
     public MotorFunctions(LinearOpMode l)
     {
@@ -26,8 +26,8 @@ public class MotorFunctions {
             return; // It means that this robot does not have those motors configured
         }
 
-        leftLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftLinearSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -40,8 +40,23 @@ public class MotorFunctions {
 
         intakeMotor.setPower(speed);
     }
+
+    public double GetLeftSlidePosition()
+    {
+        if(leftLinearSlide == null)
+            return 0.0;
+        return leftLinearSlide.getCurrentPosition();
+    }
+    public double GetRightSlidePosition()
+    {
+        if(rightLinearSlide == null)
+            return 0.0;
+
+        return rightLinearSlide.getCurrentPosition();
+    }
+
     public void MoveSlide(double speed) {
-        if (leftLinearSlide ==  null)
+        if (leftLinearSlide ==  null || rightLinearSlide == null)
             return;
 
         leftLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

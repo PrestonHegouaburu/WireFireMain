@@ -8,6 +8,7 @@ public class ServoFunctions {
     private LinearOpMode lom = null;
     private DrivingFunctions df;
     private Servo pixelReleaseServo = null;
+    private Servo planeLaunchServo = null;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
     public ServoFunctions(LinearOpMode l, DrivingFunctions df)
     {
@@ -17,13 +18,23 @@ public class ServoFunctions {
     }
     private void Initialize()
     {
-        pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
-        if(df.isSlideRobot())
-            pixelReleaseServo.scaleRange(0.3, 0.94);
-        else
-            pixelReleaseServo.scaleRange(0.35, 0.85);
+        try {
+            pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
+           // planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
+            if(df.isSlideRobot()) {
+                pixelReleaseServo.scaleRange(0.3, 0.94);
+            }
+            else {
+                pixelReleaseServo.scaleRange(0.35, 0.85);
+                //planeLaunchServo.scaleRange(0, 1);
+            }
 
-        pixelReleaseServo.setPosition(0.0);
+            pixelReleaseServo.setPosition(0.0);
+        }
+        catch(Exception e) {
+
+        }
+
     }
     public void PutPixelInBackBoard()
     {
@@ -33,6 +44,9 @@ public class ServoFunctions {
     }
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {
+        if (s == null)
+            return;
+
         double stepSize = (endPosition - s.getPosition()) / SERVO_SMOOTH_MOVE_STEPS;
         long sleepTime = timeInMilliseconds / SERVO_SMOOTH_MOVE_STEPS;
         double position = s.getPosition();
@@ -45,13 +59,25 @@ public class ServoFunctions {
         }
         s.setPosition(endPosition);
     }
-
     public void MovePixelReleaseServoRelative(double move)
     {
+        if (pixelReleaseServo == null)
+            return;
         MoveServoSmoothly(pixelReleaseServo, pixelReleaseServo.getPosition() + move, 100);
     }
     public double GetPixelReleaseServoPosition()
     {
+        if (pixelReleaseServo == null)
+            return 0.0;
+
         return pixelReleaseServo.getPosition();
+    }
+
+    public double GetPlaneLauncherServoPosition()
+    {
+        if (planeLaunchServo == null)
+            return 0.0;
+
+        return planeLaunchServo.getPosition();
     }
 }

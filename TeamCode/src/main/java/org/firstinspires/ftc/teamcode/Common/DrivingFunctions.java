@@ -99,6 +99,21 @@ public class DrivingFunctions {
             return 0.0;
         return distanceSensor.getDistance(DistanceUnit.INCH);
     }
+    public void goToDistance(double distance, double heading){
+        //DriveStraight( 0.5 ,GetDistanceFromSensorInInches() - distance,heading,true);
+        double power;
+        while (GetDistanceFromSensorInInches()>= distance- 1){
+            if (GetDistanceFromSensorInInches() - distance < 4){
+                power = 0.1;
+            }
+            else{
+                power = 0.3;
+            }
+            double turnSpeed = GetSteeringCorrection(heading, P_DRIVE_GAIN);
+            MoveRobot(power, 0, -turnSpeed, 1.0);
+        }
+        StopMotors();
+    }
     public void ResetYaw()
     {
         imu.resetYaw();
