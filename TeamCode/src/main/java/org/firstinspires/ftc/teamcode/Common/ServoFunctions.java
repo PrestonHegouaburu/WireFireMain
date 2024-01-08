@@ -9,6 +9,7 @@ public class ServoFunctions {
     private DrivingFunctions df;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
+    private Servo fingerServo = null;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
     public ServoFunctions(LinearOpMode l, DrivingFunctions df)
     {
@@ -23,6 +24,7 @@ public class ServoFunctions {
            // planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
             if(df.isSlideRobot()) {
                 pixelReleaseServo.scaleRange(0.3, 0.94);
+                fingerServo.scaleRange(0, .5);
             }
             else {
                 pixelReleaseServo.scaleRange(0.35, 0.85);
@@ -41,6 +43,13 @@ public class ServoFunctions {
         MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
         lom.sleep(300);
         MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
+    }
+    public void PutPixelInBackBoardSlides() {
+        MoveServoSmoothly(pixelReleaseServo, 1, 500);
+        MoveServoSmoothly(fingerServo, 1, 500);
+        lom.sleep(300);
+        MoveServoSmoothly(fingerServo, 0, 500);
+        MoveServoSmoothly(pixelReleaseServo, 0, 500);
     }
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {
