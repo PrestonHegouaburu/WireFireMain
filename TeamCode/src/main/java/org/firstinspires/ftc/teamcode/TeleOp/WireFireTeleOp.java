@@ -49,7 +49,7 @@ public class WireFireTeleOp extends LinearOpMode {
     private DrivingFunctions df = null;
     private ServoFunctions sf = null;
     private MotorFunctions mf = null;
-    private double intakeSpeed = 0.1;
+    private double intakeSpeed = 0.9;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
@@ -105,7 +105,7 @@ public class WireFireTeleOp extends LinearOpMode {
             if(!currentGamepad2.x && !currentGamepad2.b)
                 mf.intake(0);
             if (currentGamepad2.y && !previousGamepad2.y && intakeSpeed <= 0.9)
-                intakeSpeed += 0.05;
+                sf.PutPixelInBackBoardSlides();
             if (currentGamepad2.a && !previousGamepad2.a && intakeSpeed >= 0.1)
                 intakeSpeed -= 0.05 ;
 
