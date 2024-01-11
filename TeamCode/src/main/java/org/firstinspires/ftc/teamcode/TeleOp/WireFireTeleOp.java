@@ -49,7 +49,8 @@ public class WireFireTeleOp extends LinearOpMode {
     private DrivingFunctions df = null;
     private ServoFunctions sf = null;
     private MotorFunctions mf = null;
-    private double intakeSpeed = 0.1;
+    private double intakeSpeed = 0.9;
+    private double botHeading;
     @Override
     public void runOpMode() {
         df = new DrivingFunctions(this);
@@ -82,9 +83,8 @@ public class WireFireTeleOp extends LinearOpMode {
             double yaw = gamepad1.right_stick_x;
 
             if (gamepad1.back)
-                sf.LaunchPlane();
-
-            double botHeading = df.GetHeading();
+                //sf.LaunchPlane();
+                botHeading = df.GetHeading();
             double rotatingSpeed = df.GetRotatingSpeed();
             // Field centric driving is activated when any of the hat buttons are pressed
             if (gamepad1.dpad_down || gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_right) {
@@ -105,7 +105,7 @@ public class WireFireTeleOp extends LinearOpMode {
             if(!currentGamepad2.x && !currentGamepad2.b)
                 mf.intake(0);
             if (currentGamepad2.y && !previousGamepad2.y && intakeSpeed <= 0.9)
-                intakeSpeed += 0.05;
+                sf.PutPixelInBackBoardSlides();
             if (currentGamepad2.a && !previousGamepad2.a && intakeSpeed >= 0.1)
                 intakeSpeed -= 0.05 ;
 
@@ -124,9 +124,9 @@ public class WireFireTeleOp extends LinearOpMode {
                 sf.PutPixelInBackBoard();
 
             if(gamepad1.right_trigger > 0.5)
-                sf.MovePlaneLauncherServoRelative(0.01);
+               // sf.MovePlaneLauncherServoRelative(0.01);
             if(gamepad1.left_trigger > 0.5)
-                sf.MovePlaneLauncherServoRelative(-0.01);
+               // sf.MovePlaneLauncherServoRelative(-0.01);
 
 
             if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
