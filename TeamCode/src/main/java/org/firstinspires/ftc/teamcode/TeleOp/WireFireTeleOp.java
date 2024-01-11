@@ -120,7 +120,7 @@ public class WireFireTeleOp extends LinearOpMode {
             if (currentGamepad2.right_trigger > 0.5)
                 sf.MovePixelReleaseServoRelative(0.01);
 
-            if (currentGamepad1.start && !previousGamepad1.start)
+            if (currentGamepad2.start && !previousGamepad2.start)
                 sf.PutPixelInBackBoard();
 
             if(gamepad1.right_trigger > 0.5)

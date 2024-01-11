@@ -155,6 +155,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void CrossField(double strafeCorrection)
     {
+        sleep(5000);
         df.DriveStraight(DRIVE_SPEED, -13, 0, false);
         if (!centerCross) {
             df.DriveStraight(DRIVE_SPEED * 1.5, isRed ? 54 - strafeCorrection: -54 + strafeCorrection, 0, true);

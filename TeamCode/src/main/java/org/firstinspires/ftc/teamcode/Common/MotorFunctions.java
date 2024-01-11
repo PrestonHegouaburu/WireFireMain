@@ -8,7 +8,7 @@ public class MotorFunctions {
     private DcMotor leftLinearSlide = null;
     private DcMotor rightLinearSlide = null;
     private LinearOpMode lom = null;
-    private static int MAX_DISTANCE_SLIDES = 2200;
+    private static int MAX_DISTANCE_SLIDES = 2300;
 
     public MotorFunctions(LinearOpMode l)
     {

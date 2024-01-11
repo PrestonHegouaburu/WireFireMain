@@ -20,17 +20,17 @@ public class ServoFunctions {
     {
         try {
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
-            planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
+            //planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
             if(df.isSlideRobot()) {
                 pixelReleaseServo.scaleRange(0.3, 0.94);
             }
             else {
                 pixelReleaseServo.scaleRange(0.35, 0.85);
-                planeLaunchServo.scaleRange(0.2, 0.8);
+                //planeLaunchServo.scaleRange(0.2, 0.8);
             }
 
             pixelReleaseServo.setPosition(0.0);
-            planeLaunchServo.setPosition(0.0);
+            //planeLaunchServo.setPosition(0.0);
         }
         catch(Exception e) {
 
