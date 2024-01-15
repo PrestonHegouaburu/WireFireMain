@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Common;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -17,6 +18,7 @@ public class DrivingFunctions {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DistanceSensor distanceSensor = null;
+    private boolean drivingForward = true;
     private IMU imu = null;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
@@ -51,6 +53,7 @@ public class DrivingFunctions {
     {
         return !isRobotA;
     }
+    public boolean isRobotDrivingForward() {return drivingForward;}
     private void Initialize()
     {
         DetermineWhatRobotThisIs();
@@ -75,10 +78,7 @@ public class DrivingFunctions {
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
 
-        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
+        SetDirectionForward();
 
         // Ensure the robot is stationary.  Reset the encoders and set the motors to BRAKE mode
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -93,26 +93,29 @@ public class DrivingFunctions {
         ResetYaw();
     }
 
+    public void SetDirectionForward()
+    {
+        drivingForward = true;
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
+    }
+    public void SetDirectionBackward()
+    {
+        drivingForward = false;
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
+    }
+
+
     public double GetDistanceFromSensorInInches()
     {
         if (distanceSensor == null)
             return 0.0;
         return distanceSensor.getDistance(DistanceUnit.INCH);
-    }
-    public void goToDistance(double distance, double heading){
-        //DriveStraight( 0.5 ,GetDistanceFromSensorInInches() - distance,heading,true);
-        double power;
-        while (GetDistanceFromSensorInInches()>= distance- 1){
-            if (GetDistanceFromSensorInInches() - distance < 4){
-                power = 0.1;
-            }
-            else{
-                power = 0.3;
-            }
-            double turnSpeed = GetSteeringCorrection(heading, P_DRIVE_GAIN);
-            MoveRobot(power, 0, -turnSpeed, 1.0);
-        }
-        StopMotors();
     }
     public void ResetYaw()
     {
@@ -244,31 +247,26 @@ public class DrivingFunctions {
         StopMotors();
     }
 
-    /* Assumes that the robot is in a position to see the desired tag. It tries seeing it for 2 seconds. If it can't it returns false.
+    /* Assumes that the robot is in a position to see the desired tag, and fully squared parallel to the backboard. If it can't see the desired tag, it returns false.
     After successfully driving to the desired tag (aligning perfectly so it is facing it directly at the desired distance, it returns true
      */
-    public boolean DriveToAprilTag(AprilTagsFunctions atf, int desiredTag, double desiredDistanceFromTagInches, double speedFactor)
+    public boolean DriveToAprilTag(AprilTagsFunctions atf, int desiredTag, double horizontalShiftFromTag, double desiredDistanceFromTagInches, double speedFactor)
     {
-        double x = 0, y = 0, yaw = 0;
-        double startTime = runtime.milliseconds();
-        // tries to find the desired tag for 2 seconds, if it can't it returns false
-        while(!atf.DetectAprilTag(desiredTag)) {
-            if(runtime.milliseconds() - startTime > 2000.0)
-                return false; // did not find the desired tag
-        }
+        if(!atf.DetectAprilTag(desiredTag))
+            return false;
+        DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, GetHeading(), true);
+        if (!atf.DetectAprilTag(desiredTag))
+            return false;
+        double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
+        DriveStraight(0.9 * speedFactor, distance < 10 ? distance / 2 : distance - 10, GetHeading(), false);
 
-        startTime = runtime.milliseconds();
-        while(runtime.milliseconds() - startTime < 3000.0)
-        {
-            atf.DetectAprilTag(desiredTag);
-            y      = 0.045 * (atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches);
-            yaw    = -0.025 * atf.detectedTag.ftcPose.bearing;
-            x      = 0.025 * atf.detectedTag.ftcPose.yaw;
-            MoveRobot(x, y, yaw, speedFactor);
-            // checks if it finished moving
-            if(Math.abs(atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches) < 0.5 &&
-                    Math.abs(atf.detectedTag.ftcPose.bearing) < 3 && Math.abs(atf.detectedTag.ftcPose.yaw) < 2)
-                break;
+        for(int i=0; i<2; i++) {
+            if (!atf.DetectAprilTag(desiredTag))
+                return false;
+            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, GetHeading(), true);
+            if (!atf.DetectAprilTag(desiredTag))
+                return false;
+            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches, GetHeading(), false);
         }
         return true;
     }
@@ -327,10 +325,16 @@ public class DrivingFunctions {
         rightBackDrive.setPower(rightBackPower * speedFactor);
     }
     public double GetHeading() {
-        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        if(!isRobotDrivingForward())
+            heading = heading * -1;
+        return heading;
     }
     public double GetRotatingSpeed()
     {
-        return imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+        double rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+        if(!isRobotDrivingForward())
+            rotatingSpeed = rotatingSpeed * -1;
+        return rotatingSpeed;
     }
 }

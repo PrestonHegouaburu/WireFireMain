@@ -174,7 +174,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         {
             // Face to backboard to see the destination AprilTag
             df.TurnToHeading(TURN_SPEED * 1.5, isRed ? -90 : 90);
-            if(!df.DriveToAprilTag(aprilTagsFunctions, desiredTag, 20, DRIVE_SPEED * 1.7)) {
+            if(!df.DriveToAprilTag(aprilTagsFunctions, desiredTag, 0, 20, DRIVE_SPEED * 1.7)) {
                 // if it fails to see the AprilTag, it defaults to the old way of delivering (based on encoder only)
                 useAprilTagsToDeliverPixel = false;
             }

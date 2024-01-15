@@ -58,7 +58,7 @@ public class CircleDetectionEmulator extends OpenCvPipeline
         Mat mask2 = new Mat();
         Mat hsvMat = new Mat();
 
-        subMat = input.submat(new Rect(100, 250, 1000, 300));
+        subMat = input.submat(new Rect(0, 250, 1200, 300));
         Imgproc.cvtColor(subMat, hsvMat, Imgproc.COLOR_RGB2HSV);
 
         Core.inRange(hsvMat, new Scalar(0, 70, 50), new Scalar(10, 255, 255), mask1); // RED 1

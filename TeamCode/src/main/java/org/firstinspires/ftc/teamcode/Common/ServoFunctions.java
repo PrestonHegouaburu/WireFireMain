@@ -4,12 +4,31 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.List;
+
 public class ServoFunctions {
     private LinearOpMode lom = null;
     private DrivingFunctions df;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
-    private Servo fingerServo = null;
+    private Servo fingerServoTop = null;
+    private Servo fingerServoBottom = null;
+    public class ServoInfo
+    {
+        public String name;
+        public Servo s;
+        public double rangeStart, rangeEnd;
+        public ServoInfo(Servo s, String name, double rangeStart, double rangeEnd)
+        {
+            this.name = name;
+            this.s = s;
+            this.rangeStart = rangeStart;
+            this.rangeEnd = rangeEnd;
+        }
+    }
+    public List<ServoInfo> servoList;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
     public ServoFunctions(LinearOpMode l, DrivingFunctions df)
     {
@@ -19,24 +38,67 @@ public class ServoFunctions {
     }
     private void Initialize()
     {
+        double rangeStart, rangeEnd;
+        String servoName;
+        servoList = new ArrayList<ServoInfo>();
+
         try {
-            pixelReleaseServo = lom.hardwareMap.get(Servo .class, "PixelReleaseServo");
-            planeLaunchServo = lom.hardwareMap.get(Servo .class, "PlaneLaunchServo");
+            servoName = "PixelReleaseServo";
+            pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
-                pixelReleaseServo.scaleRange(0.3, 0.94);
-                fingerServo.scaleRange(0, .5);
+                rangeStart= 0.3;
+                rangeEnd = 0.94;
             }
             else {
-                pixelReleaseServo.scaleRange(0.35, 0.85);
-                //planeLaunchServo.scaleRange(0, 1);
+                rangeStart= 0.4;
+                rangeEnd = 0.85;
             }
-
+            pixelReleaseServo.scaleRange(rangeStart, rangeEnd);
+            servoList.add(new ServoInfo(pixelReleaseServo, servoName, rangeStart, rangeEnd));
             pixelReleaseServo.setPosition(0.0);
         }
-        catch(Exception e) {
+        catch(Exception e) {}
 
+        try {
+            servoName = "PlaneLaunchServo";
+            planeLaunchServo = lom.hardwareMap.get(Servo .class, servoName);
+            rangeStart = 0.0;
+            rangeEnd = 1.0;
+            servoList.add(new ServoInfo(planeLaunchServo, servoName, rangeStart, rangeEnd));
+            planeLaunchServo.scaleRange(rangeStart, rangeEnd);
+            planeLaunchServo.setPosition(0.0);
         }
+        catch(Exception e) {}
 
+        try {
+            servoName = "FingerServoBottom";
+            fingerServoBottom = lom.hardwareMap.get(Servo .class, servoName);
+            rangeStart = 0.0;
+            rangeEnd = 1.0;
+            servoList.add(new ServoInfo(fingerServoBottom, servoName, rangeStart, rangeEnd));
+            fingerServoBottom.scaleRange(rangeStart, rangeEnd);
+            fingerServoBottom.setPosition(0.0);
+        }
+        catch(Exception e) {}
+
+        try {
+            servoName = "FingerServoTop";
+            fingerServoTop = lom.hardwareMap.get(Servo .class, servoName);
+            rangeStart = 0.0;
+            rangeEnd = 1.0;
+            servoList.add(new ServoInfo(fingerServoTop, servoName, rangeStart, rangeEnd));
+            fingerServoTop.scaleRange(rangeStart, rangeEnd);
+            fingerServoTop.setPosition(0.0);
+        }
+        catch(Exception e) {}
+    }
+    public void LaunchPlane()
+    {
+        if(planeLaunchServo == null)
+            return;
+        planeLaunchServo.setPosition(1.0);
+        lom.sleep(200);
+        planeLaunchServo.setPosition(0.0);
     }
     public void PutPixelInBackBoard()
     {
@@ -46,10 +108,14 @@ public class ServoFunctions {
     }
     public void PutPixelInBackBoardSlides() {
         MoveServoSmoothly(pixelReleaseServo, 1, 500);
-        MoveServoSmoothly(fingerServo, 1, 500);
+        MoveServoSmoothly(fingerServoBottom, 1, 500);
         lom.sleep(300);
-        MoveServoSmoothly(fingerServo, 0, 500);
+        MoveServoSmoothly(fingerServoBottom, 0, 500);
         MoveServoSmoothly(pixelReleaseServo, 0, 500);
+    }
+    public void MoveServoRelative(Servo s, double delta)
+    {
+        s.setPosition(s.getPosition()+delta);
     }
     private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
     {
@@ -67,26 +133,5 @@ public class ServoFunctions {
             lom.sleep(sleepTime);
         }
         s.setPosition(endPosition);
-    }
-    public void MovePixelReleaseServoRelative(double move)
-    {
-        if (pixelReleaseServo == null)
-            return;
-        MoveServoSmoothly(pixelReleaseServo, pixelReleaseServo.getPosition() + move, 100);
-    }
-    public double GetPixelReleaseServoPosition()
-    {
-        if (pixelReleaseServo == null)
-            return 0.0;
-
-        return pixelReleaseServo.getPosition();
-    }
-
-    public double GetPlaneLauncherServoPosition()
-    {
-        if (planeLaunchServo == null)
-            return 0.0;
-
-        return planeLaunchServo.getPosition();
     }
 }

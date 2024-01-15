@@ -47,14 +47,14 @@ public class AprilTagsFunctions {
                     break;  // don't look any further.
                 } else {
                     // This tag is in the library, but we do not want to track it right now.
-                    lom.telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
+                    //lom.telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
                 }
             } else {
                 // This tag is NOT in the library, so we don't have enough information to track to it.
-                lom.telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+                //lom.telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
             }
         }
-        lom.telemetry.update();
+        //lom.telemetry.update();
         return targetFound;
     }
     private void Initialize()
