@@ -2,10 +2,8 @@ package org.firstinspires.ftc.teamcode.Common;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 
 public class ServoFunctions {
@@ -100,18 +98,14 @@ public class ServoFunctions {
         lom.sleep(200);
         planeLaunchServo.setPosition(0.0);
     }
-    public void PutPixelInBackBoard()
+    public double IdealDistanceFromBackdropToDeliver(int targetRow) {
+        return 5.0;
+    }
+    public void PutPixelOnBackDrop()
     {
         MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
         lom.sleep(300);
         MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
-    }
-    public void PutPixelInBackBoardSlides() {
-        MoveServoSmoothly(pixelReleaseServo, 1, 500);
-        MoveServoSmoothly(fingerServoBottom, 1, 500);
-        lom.sleep(300);
-        MoveServoSmoothly(fingerServoBottom, 0, 500);
-        MoveServoSmoothly(pixelReleaseServo, 0, 500);
     }
     public void MoveServoRelative(Servo s, double delta)
     {

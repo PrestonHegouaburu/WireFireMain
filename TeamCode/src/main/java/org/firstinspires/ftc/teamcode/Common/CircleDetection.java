@@ -55,7 +55,7 @@ public class CircleDetection extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
         framesProcessed++;
-        subMat = input.submat(new Rect(0, 300, 1200, 250));
+        subMat = input.submat(new Rect(0, 300, 1280, 250));
         Imgproc.cvtColor(subMat, hsvMat, Imgproc.COLOR_RGB2HSV);
         if (detectionRed) {
             Core.inRange(hsvMat, new Scalar(0, 70, 50), new Scalar(10, 255, 255), mask1); // RED 1

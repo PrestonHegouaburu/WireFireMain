@@ -2,20 +2,24 @@ package org.firstinspires.ftc.teamcode.Common;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class MotorFunctions {
+    private final ElapsedTime runtime = new ElapsedTime();
     private DcMotor intakeMotor = null;
     private DcMotor leftLinearSlide = null;
     private DcMotor rightLinearSlide = null;
     private LinearOpMode lom = null;
-    private static int MAX_DISTANCE_SLIDES = 2300;
+    private static final int MAX_DISTANCE_SLIDES = 2300;
+    private static final int TICKS_PER_ROW = 200;
+    private static final int FIRST_ROW_SLIDE_POSITION = 150;
+    public static final int MAX_ROWS_OF_PIXELS = 10; // How high can the robot deliver pixels
 
-    public MotorFunctions(LinearOpMode l)
-    {
+    public MotorFunctions(LinearOpMode l) {
         lom = l;
         Initialize();
     }
-    public void Initialize(){
+    public void Initialize() {
         try {
             intakeMotor = lom.hardwareMap.get(DcMotor.class, "intakeMotor");
             leftLinearSlide = lom.hardwareMap.get(DcMotor.class, "leftLinearSlide");
@@ -28,40 +32,38 @@ public class MotorFunctions {
 
         leftLinearSlide.setDirection(DcMotorSimple.Direction.REVERSE);
         rightLinearSlide.setDirection(DcMotorSimple.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftLinearSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightLinearSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightLinearSlide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-    public void intake(double speed){
+    public void SetIntakePower(double power) {
         if (intakeMotor ==  null)
             return;
-
-        intakeMotor.setPower(speed);
+        intakeMotor.setPower(power);
     }
-
-    public double GetLeftSlidePosition()
-    {
+    public double GetLeftSlidePosition() {
         if(leftLinearSlide == null)
             return 0.0;
         return leftLinearSlide.getCurrentPosition();
     }
-    public double GetRightSlidePosition()
-    {
+    public double GetRightSlidePosition() {
         if(rightLinearSlide == null)
             return 0.0;
-
         return rightLinearSlide.getCurrentPosition();
     }
 
-    public void MoveSlide(double speed) {
+    public void MoveSlides(double speed) {
         if (leftLinearSlide ==  null || rightLinearSlide == null)
             return;
-
         leftLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        MoveSlidesMotor(speed);
+    }
+    private void MoveSlidesMotor(double speed) {
         if (speed < 0 && (leftLinearSlide.getCurrentPosition() <= 0 || rightLinearSlide.getCurrentPosition() <= 0))
             speed = 0;
         if (speed > 0 && (leftLinearSlide.getCurrentPosition() >= MAX_DISTANCE_SLIDES || rightLinearSlide.getCurrentPosition() >= MAX_DISTANCE_SLIDES))
@@ -69,29 +71,36 @@ public class MotorFunctions {
         leftLinearSlide.setPower(speed);
         rightLinearSlide.setPower(speed);
     }
-
-    public void moveSlideDistance(double speed, int distance)
-    {
-        if (leftLinearSlide ==  null)
-            return;
-
-        leftLinearSlide.setTargetPosition(distance);
-        rightLinearSlide.setTargetPosition(distance);
-        MoveSlide(speed);
-        while (leftLinearSlide.isBusy() && rightLinearSlide.isBusy()){
-
-        }
-        MoveSlide(0);
+    public void MoveSlidesToRowTarget(double speed, int rowTarget) {
+        double startTime = runtime.milliseconds();
+        StartMovingSlidesToRowTarget(speed, rowTarget);
+        while(!AreSlidesDoneMovingToTarget())
+            if(runtime.milliseconds() - startTime > 2000) //waits until the slides are done moving or 2 seconds
+                break;
     }
-
-    public void PrintMotorPositions(double speed)
-    {
-        if (leftLinearSlide ==  null)
-            return;
-        lom.telemetry.addData("Speed: ",  "%3.2f", speed);
-        lom.telemetry.addData("Left Slide Position: ",  "%7d", leftLinearSlide.getCurrentPosition());
-        lom.telemetry.addData("Right Front Position: ",  "%7d", rightLinearSlide.getCurrentPosition());
-        lom.telemetry.update();
+    public void StartMovingSlidesToRowTarget(double speed, int rowTarget) {
+        StartMovingSlidesToPosition(speed, GetSlidesTargetPosition(rowTarget));
     }
-
+    public boolean AreSlidesDoneMovingToTarget() {
+        if(leftLinearSlide == null || rightLinearSlide == null)
+            return true;
+        boolean stillMoving = lom.opModeIsActive() && leftLinearSlide.isBusy() && rightLinearSlide.isBusy();
+        if(!stillMoving)
+            MoveSlides(0.0);
+        return !stillMoving;
+    }
+    private int GetSlidesTargetPosition(int targetRow) {
+        if (targetRow == 0)
+            return 0;
+        return FIRST_ROW_SLIDE_POSITION + TICKS_PER_ROW * (targetRow-1);
+    }
+    private void StartMovingSlidesToPosition(double speed, int position) {
+        if (leftLinearSlide ==  null || rightLinearSlide == null)
+            return;
+        leftLinearSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightLinearSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftLinearSlide.setTargetPosition(position);
+        rightLinearSlide.setTargetPosition(position);
+        MoveSlidesMotor(speed);
+    }
 }

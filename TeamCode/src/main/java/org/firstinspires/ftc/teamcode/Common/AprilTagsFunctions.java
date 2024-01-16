@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 
 public class AprilTagsFunctions {
     private LinearOpMode lom = null;
+    private boolean isCameraReady = false;
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
-
     public static final int TAG_BLUE_LEFT = 1;
     public static final int TAG_BLUE_CENTER = 2;
     public static final int TAG_BLUE_RIGHT = 3;
@@ -26,13 +26,18 @@ public class AprilTagsFunctions {
     public static final int TAG_RED_RIGHT = 6;
     // Used to hold the data for a detected AprilTag
     public AprilTagDetection detectedTag = null;
-    public AprilTagsFunctions(LinearOpMode l)
-    {
+    public AprilTagsFunctions(LinearOpMode l) {
         lom = l;
-        Initialize();
+        try {
+            Initialize();
+        }
+        catch (Exception e) {
+            isCameraReady = false;
+        }
     }
-    public boolean DetectAprilTag(int desiredTag)
-    {
+    public boolean DetectAprilTag(int desiredTag) {
+        if(!isCameraReady)
+            return false;
         boolean targetFound = false;
         // Step through the list of detected tags and look for a matching tag
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -57,8 +62,7 @@ public class AprilTagsFunctions {
         //lom.telemetry.update();
         return targetFound;
     }
-    private void Initialize()
-    {
+    private void Initialize() {
         // Create the AprilTag processor by using a builder.
         aprilTag = new AprilTagProcessor.Builder().build();
 
@@ -79,6 +83,7 @@ public class AprilTagsFunctions {
 
         setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
     }
+
     /*
      Manually set the camera gain and exposure.
      This can only be called AFTER calling initAprilTag(), and only works for Webcams;
@@ -101,9 +106,11 @@ public class AprilTagsFunctions {
             lom.telemetry.addData("Camera", "Ready");
             lom.telemetry.update();
         }
+        if(visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)
+            return;
+
         // Set camera controls unless we are stopping.
-        if (!lom.isStopRequested())
-        {
+        if (!lom.isStopRequested()) {
             ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
             if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
                 exposureControl.setMode(ExposureControl.Mode.Manual);
@@ -115,5 +122,6 @@ public class AprilTagsFunctions {
             gainControl.setGain(gain);
             lom.sleep(20);
         }
+        isCameraReady = true;
     }
 }

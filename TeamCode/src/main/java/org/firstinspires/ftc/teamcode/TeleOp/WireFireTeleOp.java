@@ -18,19 +18,22 @@ public class WireFireTeleOp extends LinearOpMode {
     protected DrivingFunctions df = null;
     protected ServoFunctions sf = null;
     protected MotorFunctions mf = null;
-    protected double intakeSpeed = 0.9;
+    protected double intakeSpeed = 0.85;
     protected double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
+    private static final double slidesSpeed = 0.6;
     protected boolean IsTestMode = false;
     protected boolean IsRedTeam = true;
     protected Gamepad currentGamepad1, previousGamepad1, currentGamepad2, previousGamepad2;
     private double x, y, yaw;
     private boolean isAutoTurning = false;
     private double autoTurningStart, autoTurningTarget, autoTurningTimeoutMilliseconds;
-    private int boardRowTarget = 0; // from 0 to 10
-    private int boardColumnTarget = 1; // from 1 to 7
+    private int columnTarget = 1; // from 1 to 7
+    private int rowTarget = 0;
+    private int actualSlidesRowPosition = 0;
+    private int movingTowardRowPosition = -1; // -1 means that there is no slide movement now
+
     private int targetAprilTag;
-    private void Init()
-    {
+    private void Init() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this, df);
         aprilTagsFunctions = new AprilTagsFunctions(this);
@@ -39,7 +42,7 @@ public class WireFireTeleOp extends LinearOpMode {
         previousGamepad1 = new Gamepad();
         currentGamepad2 = new Gamepad();
         previousGamepad2 = new Gamepad();
-        boardColumnTarget = 3;
+        columnTarget = 3;
         SetTargetAprilTag();
     }
     @Override
@@ -55,12 +58,37 @@ public class WireFireTeleOp extends LinearOpMode {
             FieldCentricDriving();
             AutoTurning();
             ProcessTestCommands();
-            SetBoardTargets();
             ProcessPixelDelivery();
             CheckRevertDirection();
+            IntakeCommands();
             UpdateTelemetry();
+            UpdateSlidesPosition();
+            SetBackdropTargets();
             df.MoveRobot(x, y, yaw, speedFactor);
         }
+    }
+    private void UpdateSlidesPosition() {
+        // The goal is to have the slide positions match the rowTarget variable
+        // This function should end quickly so it doesn't block the rest of the commands
+        if(actualSlidesRowPosition != rowTarget ||
+                (movingTowardRowPosition != -1 && movingTowardRowPosition != rowTarget)) {
+            mf.StartMovingSlidesToRowTarget(slidesSpeed, rowTarget);
+            movingTowardRowPosition = rowTarget;
+        }
+        if (movingTowardRowPosition != -1 && mf.AreSlidesDoneMovingToTarget()) {
+            movingTowardRowPosition = -1; // the slides stopped moving, as we arrived to the position
+            actualSlidesRowPosition = rowTarget;
+        }
+    }
+
+    private void IntakeCommands() {
+        if (currentGamepad2.left_trigger > 0)
+            mf.SetIntakePower(intakeSpeed);
+        if (currentGamepad2.right_trigger > 0)
+            mf.SetIntakePower(-intakeSpeed);
+        if (currentGamepad2.left_trigger == 0 && currentGamepad2.right_trigger == 0)
+            mf.SetIntakePower(0);
+
     }
     private void CheckRevertDirection() {
         if (previousGamepad1.left_trigger < 0.5 && currentGamepad1.left_trigger > 0.5) {
@@ -72,58 +100,60 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     private void ProcessPixelDelivery() {
         if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
-            sf.PutPixelInBackBoard();
-        if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)
-        {
+            sf.PutPixelOnBackDrop();
+        if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5) {
             double horizontalShift;
-            if(boardRowTarget % 2 == 1)  // in odd rows the shift is 1.5 for even columns and -1.5 for odd columns
-                horizontalShift = boardColumnTarget % 2 == 0 ? 1.5 : -1.5;
+            if(rowTarget % 2 == 1)  // in odd rows the shift is 1.5 for even columns and -1.5 for odd columns
+                horizontalShift = columnTarget % 2 == 0 ? 1.5 : -1.5;
             else // in even rows we have 0 shift in even columns, and -3 for odd, except for 7 it is 3
-                horizontalShift = boardColumnTarget == 7 ? 3.0 : (boardColumnTarget % 2 == 0 ? 0.0 : -3.0);
+                horizontalShift = columnTarget == 7 ? 3.0 : (columnTarget % 2 == 0 ? 0.0 : -3.0);
 
-            if(!df.DriveToAprilTag(aprilTagsFunctions, targetAprilTag, horizontalShift,11.0, 0.7))
+            if(!df.DriveToAprilTag(aprilTagsFunctions, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.7))
                 return;
-            sf.PutPixelInBackBoard();
+            sf.PutPixelOnBackDrop();
             df.DriveStraight(0.6, -3.0, df.GetHeading(), false);
         }
     }
-    private void SetBoardTargets() {
-        int oldBoardRowTarget = boardRowTarget;
-        int oldBoardColumnTarget = boardColumnTarget;
+    private void SetBackdropTargets() {
+        if(IsTestMode)
+            return;
+
+        int oldRowTarget = rowTarget;
+        int oldColumnTarget = columnTarget;
 
         if (!previousGamepad2.left_bumper && currentGamepad2.left_bumper)
-            if (boardRowTarget > 0)
-                boardRowTarget--;
+            if (rowTarget > 0)
+                rowTarget--;
 
         if (!previousGamepad2.right_bumper && currentGamepad2.right_bumper)
-            if (boardRowTarget < 10)
-                boardRowTarget++;
+            if (rowTarget < MotorFunctions.MAX_ROWS_OF_PIXELS)
+                rowTarget++;
 
-        if (oldBoardRowTarget != boardRowTarget && boardColumnTarget == 7)
-            boardColumnTarget = 6; // boardColumnTarget cannot be 7 on two consecutive rows, as odd rows have 6 columns
+        if (oldRowTarget != rowTarget && columnTarget == 7)
+            columnTarget = 6; // columnTarget cannot be 7 on two consecutive rows, as odd rows have 6 columns
 
         if (!previousGamepad2.x && currentGamepad2.x)
-            if (boardColumnTarget == 1)
-                boardColumnTarget = 2;
+            if (columnTarget == 1)
+                columnTarget = 2;
             else
-                boardColumnTarget = 1;
+                columnTarget = 1;
 
         if (!previousGamepad2.y && currentGamepad2.y)
-            if (boardColumnTarget == 3)
-                boardColumnTarget = 4;
+            if (columnTarget == 3)
+                columnTarget = 4;
             else
-                boardColumnTarget = 3;
+                columnTarget = 3;
 
         if (!previousGamepad2.b && currentGamepad2.b)
-            if (boardColumnTarget == 5)
-                boardColumnTarget = 6;
-            else if(boardColumnTarget == 6)
-                boardColumnTarget = boardRowTarget % 2 == 0 ? 7 : 5; // in odd rows, there are 6 columns, in even rows there are 7
+            if (columnTarget == 5)
+                columnTarget = 6;
+            else if(columnTarget == 6)
+                columnTarget = rowTarget % 2 == 0 ? 7 : 5; // in odd rows, there are 6 columns, in even rows there are 7
             else
-                boardColumnTarget = 5;
+                columnTarget = 5;
 
         // Set targetAprilTag if the column target changed
-        if (oldBoardColumnTarget != boardColumnTarget) {
+        if (oldColumnTarget != columnTarget) {
             SetTargetAprilTag();
         }
     }
@@ -134,7 +164,7 @@ public class WireFireTeleOp extends LinearOpMode {
         int blueAprilTagMapping[] = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
                 AprilTagsFunctions.TAG_BLUE_CENTER, AprilTagsFunctions.TAG_BLUE_CENTER,
                 AprilTagsFunctions.TAG_BLUE_RIGHT, AprilTagsFunctions.TAG_BLUE_RIGHT,AprilTagsFunctions.TAG_BLUE_RIGHT};
-        targetAprilTag = IsRedTeam ? redAprilTagMapping[boardColumnTarget-1] : blueAprilTagMapping[boardColumnTarget-1];
+        targetAprilTag = IsRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
     }
 
     private void RobotCentricDriving() {
@@ -147,7 +177,6 @@ public class WireFireTeleOp extends LinearOpMode {
             speedFactor = 1;
         if (!previousGamepad1.back && currentGamepad1.back)
             df.ResetYaw();
-
     }
     private void AutoTurning() {
         double kp = -0.033;
@@ -165,14 +194,12 @@ public class WireFireTeleOp extends LinearOpMode {
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 1000;
         }
 
-        if (isAutoTurning)
-        {
+        if (isAutoTurning) {
             double currentTime = runtime.milliseconds();
             double deltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             if ((Math.abs(deltaDegrees) < 1.0 && Math.abs(df.GetRotatingSpeed()) < 2.0) || (currentTime - autoTurningStart > autoTurningTimeoutMilliseconds)) {
                 isAutoTurning = false;
-            }
-            else {
+            } else {
                 yaw = kp * deltaDegrees / speedFactor;
             }
         }
@@ -215,8 +242,8 @@ public class WireFireTeleOp extends LinearOpMode {
         telemetry.addData("Distance", "%4.2f", aprilTagsFunctions.detectedTag != null ? aprilTagsFunctions.detectedTag.ftcPose.range : -1);
         telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
-        telemetry.addData("Board Row Target", "%2d", boardRowTarget);
-        telemetry.addData("Board Column", "%2d", boardColumnTarget);
+        telemetry.addData("Backdrop Row Target", "%2d", rowTarget);
+        telemetry.addData("Backdrop Column", "%2d", columnTarget);
         telemetry.update();
     }
 }

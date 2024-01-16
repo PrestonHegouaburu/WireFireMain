@@ -32,13 +32,11 @@ public class DrivingFunctions {
     static final double     HEADING_THRESHOLD       = 2.0 ;    // How close must the heading get to the target before moving to next step.
     static final double     P_TURN_GAIN            = 0.04;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_GAIN           = 0.03;     // Larger is more responsive, but also less stable
-    public DrivingFunctions(LinearOpMode l)
-    {
+    public DrivingFunctions(LinearOpMode l) {
         lom = l;
         Initialize();
     }
-    private void DetermineWhatRobotThisIs()
-    {
+    private void DetermineWhatRobotThisIs() {
         // In our Wire Fire Robot B, we named the front-left motor "b-frontleft". If that's found, then this is RobotB.
         // If this throws an exception, then this is Robot A
         try {
@@ -54,8 +52,7 @@ public class DrivingFunctions {
         return !isRobotA;
     }
     public boolean isRobotDrivingForward() {return drivingForward;}
-    private void Initialize()
-    {
+    private void Initialize() {
         DetermineWhatRobotThisIs();
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
@@ -93,26 +90,21 @@ public class DrivingFunctions {
         ResetYaw();
     }
 
-    public void SetDirectionForward()
-    {
+    public void SetDirectionForward() {
         drivingForward = true;
         leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
     }
-    public void SetDirectionBackward()
-    {
+    public void SetDirectionBackward() {
         drivingForward = false;
         leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
     }
-
-
-    public double GetDistanceFromSensorInInches()
-    {
+    public double GetDistanceFromSensorInInches() {
         if (distanceSensor == null)
             return 0.0;
         return distanceSensor.getDistance(DistanceUnit.INCH);
@@ -120,18 +112,6 @@ public class DrivingFunctions {
     public void ResetYaw()
     {
         imu.resetYaw();
-    }
-    public void TestEncoders()
-    {
-        while(lom.opModeIsActive())
-        {
-            lom.telemetry.addData("Left Front Position: ",  "%7d", leftFrontDrive.getCurrentPosition());
-            lom.telemetry.addData("Right Front Position: ",  "%7d", rightFrontDrive.getCurrentPosition());
-            lom.telemetry.addData("Left Back Position: ",  "%7d", leftBackDrive.getCurrentPosition());
-            lom.telemetry.addData("Right Back Position: ",  "%7d", rightBackDrive.getCurrentPosition());
-            lom.telemetry.addData("Heading:", "%5.0f", GetHeading());
-            lom.telemetry.update();
-        }
     }
 
     /**
@@ -146,8 +126,9 @@ public class DrivingFunctions {
      *                   0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                   If a relative angle is required, add/subtract from the current robotHeading.
      */
-    public void DriveStraight(double maxDriveSpeed, double distance, double heading, boolean strafe)
-    {
+    public void DriveStraight(double maxDriveSpeed, double distance, double heading, boolean strafe) {
+        if(distance == 0.0)
+            return;
         CalculateHeadingError(heading);
         if (Math.abs(this.headingError) > 4.0)
             TurnToHeading(maxDriveSpeed, heading);
@@ -160,8 +141,7 @@ public class DrivingFunctions {
         if (!strafe) {
             rightFrontDrive.setTargetPosition(rightFrontDrive.getCurrentPosition() + moveCounts);
             leftBackDrive.setTargetPosition(leftBackDrive.getCurrentPosition() + moveCounts);
-        }
-        else{
+        } else {
             rightFrontDrive.setTargetPosition(rightFrontDrive.getCurrentPosition() - moveCounts);
             leftBackDrive.setTargetPosition(leftBackDrive.getCurrentPosition() - moveCounts);
         }
@@ -175,14 +155,13 @@ public class DrivingFunctions {
         maxDriveSpeed = Math.abs(maxDriveSpeed);
         if (!strafe) {
             MoveRobot(0, maxDriveSpeed, 0, 1.0);
-        }
-        else{
+        } else{
             MoveRobot(maxDriveSpeed, 0, 0, 1.0);
         }
         // keep looping while we are still active, and BOTH motors are running.
         while (lom.opModeIsActive() &&
-                (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy() && rightBackDrive.isBusy()))
-        {
+                (leftFrontDrive.isBusy() && rightFrontDrive.isBusy() && leftBackDrive.isBusy()
+                        && rightBackDrive.isBusy())) {
             // Determine required steering to keep on heading
             double turnSpeed = GetSteeringCorrection(heading, P_DRIVE_GAIN);
 
@@ -193,15 +172,13 @@ public class DrivingFunctions {
             // Apply the turning correction to the current driving speed.
             if (!strafe) {
                 MoveRobot(0, maxDriveSpeed, -turnSpeed, 1.0);
-            }
-            else{
+            } else {
                 MoveRobot(maxDriveSpeed, 0, -turnSpeed, 1.0);
             }
         }
         StopMotors();
     }
-    private void StopMotors()
-    {
+    private void StopMotors() {
         // Stop all motion & Turn off RUN_TO_POSITION
         MoveRobot(0, 0, 0, 1.0);
         // Set the encoders for closed loop speed control
@@ -232,8 +209,7 @@ public class DrivingFunctions {
         // keep looping while we are still active, and not on heading.
         while ((runtime.milliseconds() - startTime) < timeout &&
                 lom.opModeIsActive() &&
-                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 2.0))
-        {
+                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 2.0)) {
             // Determine required steering to keep on heading
             double turnSpeed = GetSteeringCorrection(heading, P_TURN_GAIN);
 
@@ -247,32 +223,31 @@ public class DrivingFunctions {
         StopMotors();
     }
 
-    /* Assumes that the robot is in a position to see the desired tag, and fully squared parallel to the backboard. If it can't see the desired tag, it returns false.
+    /* Assumes that the robot is in a position to see the desired tag, and fully squared parallel to the backdrop. If it can't see the desired tag, it returns false.
     After successfully driving to the desired tag (aligning perfectly so it is facing it directly at the desired distance, it returns true
      */
-    public boolean DriveToAprilTag(AprilTagsFunctions atf, int desiredTag, double horizontalShiftFromTag, double desiredDistanceFromTagInches, double speedFactor)
-    {
+    public boolean DriveToAprilTag(AprilTagsFunctions atf, double desiredHeading, int desiredTag, double horizontalShiftFromTag,
+                                   double desiredDistanceFromTagInches, double speedFactor) {
         if(!atf.DetectAprilTag(desiredTag))
             return false;
-        DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, GetHeading(), true);
+        DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
         if (!atf.DetectAprilTag(desiredTag))
             return false;
         double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
-        DriveStraight(0.9 * speedFactor, distance < 10 ? distance / 2 : distance - 10, GetHeading(), false);
+        DriveStraight(0.9 * speedFactor, distance < 10 ? distance / 2 : distance - 10, desiredHeading, false);
 
         for(int i=0; i<2; i++) {
             if (!atf.DetectAprilTag(desiredTag))
                 return false;
-            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, GetHeading(), true);
+            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
             if (!atf.DetectAprilTag(desiredTag))
                 return false;
-            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches, GetHeading(), false);
+            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches, desiredHeading, false);
         }
         return true;
     }
 
     // **********  LOW Level driving functions.  ********************
-
     /**
      * Use a Proportional Controller to determine how much steering correction is required.
      *
@@ -280,24 +255,20 @@ public class DrivingFunctions {
      * @param proportionalGain      Gain factor applied to heading error to obtain turning power.
      * @return                      Turning power needed to get to required heading.
      */
-    private double GetSteeringCorrection(double desiredHeading, double proportionalGain)
-    {
+    private double GetSteeringCorrection(double desiredHeading, double proportionalGain) {
         CalculateHeadingError(desiredHeading);
         // Multiply the error by the gain to determine the required steering correction/  Limit the result to +/- 1.0
         return Range.clip(this.headingError * proportionalGain, -1, 1);
     }
 
-    private void CalculateHeadingError(double desiredHeading)
-    {
+    private void CalculateHeadingError(double desiredHeading) {
         this.headingError = desiredHeading - GetHeading();
-
         // Normalize the error to be within +/- 180 degrees
         while (this.headingError > 180)  this.headingError -= 360;
         while (this.headingError <= -180) this.headingError += 360;
     }
 
-    public void MoveRobot(double x, double y, double yaw, double speedFactor)
-    {
+    public void MoveRobot(double x, double y, double yaw, double speedFactor) {
         // If yaw is positive, it turns to the right
         double max;
         double leftFrontPower  = y + x + yaw;
@@ -330,8 +301,7 @@ public class DrivingFunctions {
             heading = heading * -1;
         return heading;
     }
-    public double GetRotatingSpeed()
-    {
+    public double GetRotatingSpeed() {
         double rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
         if(!isRobotDrivingForward())
             rotatingSpeed = rotatingSpeed * -1;

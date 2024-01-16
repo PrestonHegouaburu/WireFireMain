@@ -17,8 +17,7 @@ public class CircleDetectionEmulator extends OpenCvPipeline
     Mat circlesOnFrameMat = new Mat();
     int numCirclesFound;
 
-    enum Stage
-    {
+    enum Stage {
         GREY,
         BLUR,
         MASKED,
@@ -36,29 +35,24 @@ public class CircleDetectionEmulator extends OpenCvPipeline
     }
 
     @Override
-    public void onViewportTapped()
-    {
+    public void onViewportTapped() {
         int currentStageNum = stageToRenderToViewport.ordinal();
-
         int nextStageNum = currentStageNum + 1;
 
         if(nextStageNum >= stages.length)
-        {
             nextStageNum = 0;
-        }
 
         stageToRenderToViewport = stages[nextStageNum];
     }
 
     @Override
-    public Mat processFrame(Mat input)
-    {
+    public Mat processFrame(Mat input) {
         Mat mask = new Mat();
         Mat mask1 = new Mat();
         Mat mask2 = new Mat();
         Mat hsvMat = new Mat();
 
-        subMat = input.submat(new Rect(0, 250, 1200, 300));
+        subMat = input.submat(new Rect(0, 300, 1280, 250));
         Imgproc.cvtColor(subMat, hsvMat, Imgproc.COLOR_RGB2HSV);
 
         Core.inRange(hsvMat, new Scalar(0, 70, 50), new Scalar(10, 255, 255), mask1); // RED 1
@@ -103,27 +97,22 @@ public class CircleDetectionEmulator extends OpenCvPipeline
             {
                 return grayMat;
             }
-
             case MASKED:
             {
                 return hsvMaskedMat;
             }
-
             case BLUR:
             {
                 return subMat;
             }
-
             case CIRCLES_OVERLAYED_ON_FRAME:
             {
                 return circlesOnFrameMat;
             }
-
             case RAW_IMAGE:
             {
                 return input;
             }
-
             default:
             {
                 return input;
