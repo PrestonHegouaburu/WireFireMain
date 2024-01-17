@@ -103,6 +103,8 @@ public class WireFireTeleOp extends LinearOpMode {
         if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
             sf.PutPixelOnBackDrop();
         if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5) {
+            // Auto-aligning only works in the forward direction
+            df.SetDirectionForward();
             double horizontalShift;
             if(rowTarget % 2 == 1)  // in odd rows the shift is 1.5 for even columns and -1.5 for odd columns
                 horizontalShift = columnTarget % 2 == 0 ? 1.5 : -1.5;
@@ -134,24 +136,16 @@ public class WireFireTeleOp extends LinearOpMode {
             columnTarget = 6; // columnTarget cannot be 7 on two consecutive rows, as odd rows have 6 columns
 
         if (!previousGamepad2.x && currentGamepad2.x)
-            if (columnTarget == 1)
-                columnTarget = 2;
-            else
-                columnTarget = 1;
+            columnTarget = columnTarget == 1 ? 2 : 1;
 
         if (!previousGamepad2.y && currentGamepad2.y)
-            if (columnTarget == 3)
-                columnTarget = 4;
-            else
-                columnTarget = 3;
+            columnTarget = columnTarget == 3 ? 4 : 3;
 
         if (!previousGamepad2.b && currentGamepad2.b)
-            if (columnTarget == 5)
-                columnTarget = 6;
-            else if(columnTarget == 6)
-                columnTarget = rowTarget % 2 == 0 ? 7 : 5; // in odd rows, there are 6 columns, in even rows there are 7
-            else
-                columnTarget = 5;
+            columnTarget = columnTarget == 5 ? 6 : 5;
+
+        if (!previousGamepad2.a && currentGamepad2.a)
+            columnTarget = rowTarget % 2 == 0 ? 7 : 6;
 
         // Set targetAprilTag if the column target changed
         if (oldColumnTarget != columnTarget) {
