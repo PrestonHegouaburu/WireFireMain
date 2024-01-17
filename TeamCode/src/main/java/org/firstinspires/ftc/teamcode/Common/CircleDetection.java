@@ -1,17 +1,19 @@
 package org.firstinspires.ftc.teamcode.Common;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import android.graphics.Canvas;
+
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.vision.VisionProcessor;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvPipeline;
 
-public class CircleDetection extends OpenCvPipeline {
+public class CircleDetection implements VisionProcessor {
     public enum BallPosition {LEFT, CENTER, RIGHT, UNDEFINED};
-    private BallPosition ballPosition = BallPosition.UNDEFINED;
+    private CircleDetection.BallPosition ballPosition = CircleDetection.BallPosition.UNDEFINED;
     private boolean detectionRed = true;
     private Mat grayMat = new Mat();
     private Mat hsvMaskedMat = new Mat();
@@ -41,21 +43,26 @@ public class CircleDetection extends OpenCvPipeline {
 
     public boolean CircleFound()
     {
-        return ballPosition != BallPosition.UNDEFINED;
+        return ballPosition != CircleDetection.BallPosition.UNDEFINED;
     }
-    public BallPosition GetBallPosition()
+    public CircleDetection.BallPosition GetBallPosition()
     {
         return ballPosition;
     }
 
-    public void SetBallPosition(BallPosition ballPosition)
+    public void SetBallPosition(CircleDetection.BallPosition ballPosition)
     {
         this.ballPosition = ballPosition;
     }
+
     @Override
-    public Mat processFrame(Mat input) {
+    public void init(int width, int height, CameraCalibration calibration) {
+    }
+
+    @Override
+    public Object processFrame(Mat input, long captureTimeNanos) {
         framesProcessed++;
-        subMat = input.submat(new Rect(0, 300, 1280, 250));
+        subMat = input.submat(new Rect(0, 100, 864, 250));
         Imgproc.cvtColor(subMat, hsvMat, Imgproc.COLOR_RGB2HSV);
         if (detectionRed) {
             Core.inRange(hsvMat, new Scalar(0, 70, 50), new Scalar(10, 255, 255), mask1); // RED 1
@@ -77,9 +84,16 @@ public class CircleDetection extends OpenCvPipeline {
 
         for (int i = 0; i < numCirclesFound; i++) {
             data = circles.get(0, i);
-            circleCenter = new Point(Math.round(data[0])+100, Math.round(data[1])+250);
-            ballPosition = circleCenter.x < 427 ? BallPosition.LEFT : (circleCenter.x > 853 ? BallPosition.RIGHT : BallPosition.CENTER);
+            circleCenter = new Point(Math.round(data[0]), Math.round(data[1])+100);
+            ballPosition = circleCenter.x < 250 ? CircleDetection.BallPosition.LEFT : (circleCenter.x > 600 ? CircleDetection.BallPosition.RIGHT : CircleDetection.BallPosition.CENTER);
         }
         return grayMat;
+    }
+
+    @Override
+    public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight,
+                            float scaleBmpPxToCanvasPx, float scaleCanvasDensity,
+                            Object userContext) {
+        // do nothing
     }
 }

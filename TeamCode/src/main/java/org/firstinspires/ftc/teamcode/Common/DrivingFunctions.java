@@ -238,10 +238,10 @@ public class DrivingFunctions {
 
         for(int i=0; i<2; i++) {
             if (!atf.DetectAprilTag(desiredTag))
-                return false;
+                return true;
             DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
             if (!atf.DetectAprilTag(desiredTag))
-                return false;
+                return true;
             DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches, desiredHeading, false);
         }
         return true;

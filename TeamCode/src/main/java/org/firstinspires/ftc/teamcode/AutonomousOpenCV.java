@@ -18,10 +18,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 @Disabled
 public class AutonomousOpenCV extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private OpenCvWebcam webcam;
-    protected CircleDetection circleDetection;
     protected DrivingFunctions df;
-    protected AprilTagsFunctions aprilTagsFunctions;
+    protected AprilTagsFunctions af;
     protected MotorFunctions mf;
     protected ServoFunctions sf;
     protected boolean isRed = false; // whether to detect a red ball (if false detects blue)
@@ -36,35 +34,19 @@ public class AutonomousOpenCV extends LinearOpMode {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this, df);
         mf = new MotorFunctions(this);
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        circleDetection = new CircleDetection(isRed);
-        webcam.setPipeline(circleDetection);
-        webcam.setMillisecondsPermissionTimeout(5000); // Timeout for obtaining permission is configurable. Set before opening.
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                webcam.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
-            }
-            @Override
-            public void onError(int errorCode) {
-            }
-        });
+        af = new AprilTagsFunctions(this, isRed);
+        af.RunCircleProcessorOnly();
     }
     private void DetectBallPosition(int timeoutInSeconds) {
         int tries = 0;
-        while (opModeIsActive() && !circleDetection.CircleFound() && tries < timeoutInSeconds * 10) {
+        while (opModeIsActive() && !af.circleDetection.CircleFound() && tries < timeoutInSeconds * 10) {
             sleep(100);
             tries++;
-            UpdateCircleDetectionTelemetry(tries);
+            af.UpdateCircleDetectionTelemetry(tries);
         }
-        if (!circleDetection.CircleFound())
-            circleDetection.SetBallPosition(CircleDetection.BallPosition.LEFT); // Ball not found, makes a guess to the left
-
-        // After we are done detecting the ball, we switch the camera to use the AprilTags
-        StopStreaming();
-        aprilTagsFunctions = new AprilTagsFunctions(this);
+        if (!af.circleDetection.CircleFound())
+            af.circleDetection.SetBallPosition(CircleDetection.BallPosition.LEFT); // Ball not found, makes a guess to the left
+        af.RunAprilTagProcessorOnly();
     }
     @Override
     public void runOpMode() {
@@ -78,11 +60,11 @@ public class AutonomousOpenCV extends LinearOpMode {
 
         double horizontalInchesFromBackdropCenter = 0;
 
-        if(circleDetection.GetBallPosition() == CircleDetection.BallPosition.LEFT) {
+        if(af.circleDetection.GetBallPosition() == CircleDetection.BallPosition.LEFT) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             PushPixelSide(false);
             horizontalInchesFromBackdropCenter = -7;
-        } else if(circleDetection.GetBallPosition() == CircleDetection.BallPosition.CENTER) {
+        } else if(af.circleDetection.GetBallPosition() == CircleDetection.BallPosition.CENTER) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
             horizontalInchesFromBackdropCenter = 0;
@@ -140,7 +122,11 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED, 46, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
         // Wait until there are 10 seconds left
-        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 14000;
+        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 15000;
+        if (timeToWaitMilliseconds < 0)
+            timeToWaitMilliseconds = 0;
+        telemetry.addData("Wait this number of milliseconds", "%d", timeToWaitMilliseconds);
+        telemetry.update();
         sleep(timeToWaitMilliseconds);
         df.DriveStraight(DRIVE_SPEED * 1.5, 100, backDropDirection, false);
         df.DriveStraight(DRIVE_SPEED, isRed ? 26 : -26, backDropDirection, true);
@@ -153,13 +139,17 @@ public class AutonomousOpenCV extends LinearOpMode {
         int targetRow = isNear ? 1 : 2;
         // Strafe to face desiredAprilTag
         df.DriveStraight(DRIVE_SPEED, horizontalInchesFromBackdropCenter, backDropDirection, true);
-        if(!df.DriveToAprilTag(aprilTagsFunctions, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(targetRow), DRIVE_SPEED)) {
+        if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(targetRow), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
             double dist = df.GetDistanceFromSensorInInches();
             if (dist > 0.0 && dist < 30.0) {
+                // Distance sensor worked fine
                 dist = dist - sf.IdealDistanceFromBackdropToDeliver(targetRow);
-                df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
+            } else {
+                // Distance sensor didn't work, makes its best guess at the distance left
+                dist = 14;
             }
+            df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
         }
         mf.MoveSlidesToRowTarget(0.5, targetRow);
         sf.PutPixelOnBackDrop();
@@ -178,38 +168,11 @@ public class AutonomousOpenCV extends LinearOpMode {
         //Pushes against the wall to end parking
         df.DriveStraight(DRIVE_SPEED, 10, backDropDirection, false);
     }
-    protected void finalize()
-    {
-        StopStreaming();
-    }
-    private void StopStreaming()
-    {
-        try {
-            webcam.stopStreaming();
-            webcam.closeCameraDevice();
-        }
-        catch (Exception e)
-        {}
-    }
-    private void UpdateCircleDetectionTelemetry(int tries)
-    {
-        telemetry.addData("Tries: ", tries);
-        telemetry.addData("Frame Count", webcam.getFrameCount());
-        telemetry.addData("Frames processed: ", circleDetection.FramesProcessed());
-        telemetry.addData("FPS", String.format("%.2f", webcam.getFps()));
-        telemetry.addData("Total frame time ms", webcam.getTotalFrameTimeMs());
-        telemetry.addData("Pipeline time ms", webcam.getPipelineTimeMs());
-        telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
-        telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
-        telemetry.addData("Circles detected: ", "%d", circleDetection.NumCirclesFound());
-        telemetry.addData("Circle center = ", "%4.0f, %4.0f", circleDetection.CircleCenter().x, circleDetection.CircleCenter().y);
-        telemetry.addData("Ball Position: ", "%s", circleDetection.GetBallPosition());
-        telemetry.update();
-    }
+
     private void RunBallDetectionTest() {
         while (opModeIsActive()) {
             sleep(100);
-            UpdateCircleDetectionTelemetry(0);
+            af.UpdateCircleDetectionTelemetry(0);
         }
     }
     private boolean RunningTests()

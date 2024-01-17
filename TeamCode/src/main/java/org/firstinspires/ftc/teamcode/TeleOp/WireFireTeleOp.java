@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Common.MotorFunctions;
 @Disabled
 public class WireFireTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private AprilTagsFunctions aprilTagsFunctions = null;
+    private AprilTagsFunctions af = null;
     protected DrivingFunctions df = null;
     protected ServoFunctions sf = null;
     protected MotorFunctions mf = null;
@@ -22,7 +22,7 @@ public class WireFireTeleOp extends LinearOpMode {
     protected double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
     private static final double slidesSpeed = 0.6;
     protected boolean IsTestMode = false;
-    protected boolean IsRedTeam = true;
+    protected boolean isRedTeam = true;
     protected Gamepad currentGamepad1, previousGamepad1, currentGamepad2, previousGamepad2;
     private double x, y, yaw;
     private boolean isAutoTurning = false;
@@ -36,7 +36,8 @@ public class WireFireTeleOp extends LinearOpMode {
     private void Init() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this, df);
-        aprilTagsFunctions = new AprilTagsFunctions(this);
+        af = new AprilTagsFunctions(this, isRedTeam);
+        af.RunAprilTagProcessorOnly();
         mf = new MotorFunctions(this);
         currentGamepad1 = new Gamepad();
         previousGamepad1 = new Gamepad();
@@ -108,7 +109,7 @@ public class WireFireTeleOp extends LinearOpMode {
             else // in even rows we have 0 shift in even columns, and -3 for odd, except for 7 it is 3
                 horizontalShift = columnTarget == 7 ? 3.0 : (columnTarget % 2 == 0 ? 0.0 : -3.0);
 
-            if(!df.DriveToAprilTag(aprilTagsFunctions, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.7))
+            if(!df.DriveToAprilTag(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.7))
                 return;
             sf.PutPixelOnBackDrop();
             df.DriveStraight(0.6, -3.0, df.GetHeading(), false);
@@ -164,7 +165,7 @@ public class WireFireTeleOp extends LinearOpMode {
         int blueAprilTagMapping[] = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
                 AprilTagsFunctions.TAG_BLUE_CENTER, AprilTagsFunctions.TAG_BLUE_CENTER,
                 AprilTagsFunctions.TAG_BLUE_RIGHT, AprilTagsFunctions.TAG_BLUE_RIGHT,AprilTagsFunctions.TAG_BLUE_RIGHT};
-        targetAprilTag = IsRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
+        targetAprilTag = isRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
     }
 
     private void RobotCentricDriving() {
@@ -238,8 +239,8 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     protected void UpdateTelemetry() {
         telemetry.addData("TargetAprilTag", "%d", targetAprilTag);
-        telemetry.addData("Detected AprilTag ID",  "%2d", aprilTagsFunctions.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
-        telemetry.addData("Distance", "%4.2f", aprilTagsFunctions.detectedTag != null ? aprilTagsFunctions.detectedTag.ftcPose.range : -1);
+        telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
+        telemetry.addData("Distance", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
         telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("Backdrop Row Target", "%2d", rowTarget);

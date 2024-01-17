@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class GameTeleOpRed extends WireFireTeleOp {
     @Override
     public void runOpMode() {
-        IsRedTeam = true;
+        isRedTeam = true;
         super.runOpMode();
     }
 }
