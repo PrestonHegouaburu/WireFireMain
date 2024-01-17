@@ -216,14 +216,14 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     private void CheckPlaneLaunch() {
-        if (!gamepad1.back)
-            return;
-        // If we are playing the real game, only launch the plane in the last 30 seconds
-        // (during "End game", after the first 90 minutes of regular Teleop passed)
-        // From Game Manual 1: End Game – The last thirty seconds of the two-minute (2:00) Driver-Controlled Period
-        if(!IsTestMode && runtime.seconds() < 90)
-            return;
-        sf.LaunchPlane();
+        if (!previousGamepad2.back && currentGamepad2.back) {
+            // If we are playing the real game, only launch the plane in the last 30 seconds
+            // (during "End game", after the first 90 minutes of regular Teleop passed)
+            // From Game Manual 1: End Game – The last thirty seconds of the two-minute (2:00) Driver-Controlled Period
+            if (!IsTestMode && runtime.seconds() < 90)
+                return;
+            sf.LaunchPlane();
+        }
     }
     private void UpdateGamepad() {
         previousGamepad1.copy(currentGamepad1);
