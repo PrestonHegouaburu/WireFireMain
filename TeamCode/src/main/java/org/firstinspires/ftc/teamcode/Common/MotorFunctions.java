@@ -84,10 +84,10 @@ public class MotorFunctions {
     public boolean AreSlidesDoneMovingToTarget() {
         if(leftLinearSlide == null || rightLinearSlide == null)
             return true;
-        boolean stillMoving = lom.opModeIsActive() && leftLinearSlide.isBusy() && rightLinearSlide.isBusy();
-        if(!stillMoving)
+        boolean doneMoving = !lom.opModeIsActive() || !leftLinearSlide.isBusy() || !rightLinearSlide.isBusy();
+        if(doneMoving)
             MoveSlides(0.0);
-        return !stillMoving;
+        return doneMoving;
     }
     private int GetSlidesTargetPosition(int targetRow) {
         if (targetRow == 0)

@@ -66,7 +66,6 @@ public class DrivingFunctions {
         }
         catch(Exception e) {
         }
-
         imu = lom.hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
@@ -74,9 +73,7 @@ public class DrivingFunctions {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
-
         SetDirectionForward();
-
         // Ensure the robot is stationary.  Reset the encoders and set the motors to BRAKE mode
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -234,7 +231,7 @@ public class DrivingFunctions {
         if (!atf.DetectAprilTag(desiredTag))
             return false;
         double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
-        DriveStraight(0.9 * speedFactor, distance < 10 ? distance / 2 : distance - 10, desiredHeading, false);
+        DriveStraight(0.8 * speedFactor, distance < 10 ? distance / 2 : distance - 10, desiredHeading, false);
 
         for(int i=0; i<2; i++) {
             if (!atf.DetectAprilTag(desiredTag))

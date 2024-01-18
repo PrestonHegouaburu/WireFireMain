@@ -39,7 +39,6 @@ public class AprilTagsFunctions {
         }
     }
     private void Initialize(boolean isRed) {
-        // Create the AprilTag processor by using a builder.
         circleDetection = new CircleDetection(isRed);
         aprilTag = new AprilTagProcessor.Builder().build();
 
@@ -105,9 +104,8 @@ public class AprilTagsFunctions {
     */
     private void setManualExposure(int exposureMS, int gain) {
         // Wait for the camera to be open, then use the controls
-        if (visionPortal == null) {
+        if (visionPortal == null)
             return;
-        }
         ElapsedTime runtime = new ElapsedTime();
         // Make sure camera is streaming before we try to set the exposure controls
         if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
