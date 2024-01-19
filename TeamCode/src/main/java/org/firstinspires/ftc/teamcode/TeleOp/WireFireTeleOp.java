@@ -20,7 +20,6 @@ public class WireFireTeleOp extends LinearOpMode {
     protected MotorFunctions mf = null;
     protected double intakeSpeed = 0.85;
     protected double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
-    private static final double slidesSpeed = 0.6;
     protected boolean IsTestMode = false;
     protected boolean isRedTeam = true;
     protected Gamepad currentGamepad1, previousGamepad1, currentGamepad2, previousGamepad2;
@@ -29,10 +28,8 @@ public class WireFireTeleOp extends LinearOpMode {
     private double autoTurningStart, autoTurningTarget, autoTurningTimeoutMilliseconds;
     private int columnTarget = 1; // from 1 to 7
     private int rowTarget = 0;
-    private int actualSlidesRowPosition = 0;
-    private int movingTowardRowPosition = -1; // -1 means that there is no slide movement now
-
     private int targetAprilTag;
+    private boolean areSlidesMovingManually = false;
     private void Init() {
         df = new DrivingFunctions(this);
         sf = new ServoFunctions(this, df);
@@ -68,20 +65,27 @@ public class WireFireTeleOp extends LinearOpMode {
             df.MoveRobot(x, y, yaw, speedFactor);
         }
     }
-    private void UpdateSlidesPosition() {
-        // The goal is to have the slide positions match the rowTarget variable
-        // This function should end quickly so it doesn't block the rest of the commands
-        if(actualSlidesRowPosition != rowTarget ||
-                (movingTowardRowPosition != -1 && movingTowardRowPosition != rowTarget)) {
-            mf.StartMovingSlidesToRowTarget(slidesSpeed, rowTarget);
-            movingTowardRowPosition = rowTarget;
-        }
-        if (movingTowardRowPosition != -1 && mf.AreSlidesDoneMovingToTarget()) {
-            movingTowardRowPosition = -1; // the slides stopped moving, as we arrived to the position
-            actualSlidesRowPosition = rowTarget;
-        }
-    }
 
+    private void UpdateSlidesPosition() {
+        if(!areSlidesMovingManually && !gamepad2.dpad_down && !gamepad2.dpad_up)
+            mf.MoveSlidesToRowTargetAsync(0.3, rowTarget);
+
+        if(areSlidesMovingManually && !gamepad2.dpad_down && !gamepad2.dpad_up) {
+            areSlidesMovingManually = false;
+            mf.MoveSlides(0);
+            rowTarget = mf.getRowFromPosition();
+        }
+
+        if(gamepad2.dpad_up) {
+            areSlidesMovingManually = true;
+            mf.MoveSlides(0.6);
+        }
+        if(gamepad2.dpad_down) {
+            areSlidesMovingManually = true;
+            mf.MoveSlides(-0.6);
+        }
+
+    }
     private void IntakeCommands() {
         if (currentGamepad2.left_trigger > 0)
             mf.SetIntakePower(intakeSpeed);
@@ -161,7 +165,6 @@ public class WireFireTeleOp extends LinearOpMode {
                 AprilTagsFunctions.TAG_BLUE_RIGHT, AprilTagsFunctions.TAG_BLUE_RIGHT,AprilTagsFunctions.TAG_BLUE_RIGHT};
         targetAprilTag = isRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
     }
-
     private void RobotCentricDriving() {
         y = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
         x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
@@ -178,7 +181,6 @@ public class WireFireTeleOp extends LinearOpMode {
         double botHeading = df.GetHeading();
         if(gamepad1.start)
             return;
-
         if (!isAutoTurning &&
                 ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
                         (!previousGamepad1.b && currentGamepad1.b) || (!previousGamepad1.a && currentGamepad1.a))) {
@@ -188,7 +190,6 @@ public class WireFireTeleOp extends LinearOpMode {
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 1000;
         }
-
         if (isAutoTurning) {
             double currentTime = runtime.milliseconds();
             double deltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;

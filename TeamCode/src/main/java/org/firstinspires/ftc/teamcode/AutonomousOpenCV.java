@@ -4,16 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Common.AprilTagsFunctions;
 import org.firstinspires.ftc.teamcode.Common.CircleDetection;
 import org.firstinspires.ftc.teamcode.Common.DrivingFunctions;
 import org.firstinspires.ftc.teamcode.Common.MotorFunctions;
 import org.firstinspires.ftc.teamcode.Common.ServoFunctions;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
+
 @Autonomous(name="Autonomous - Generic", group="Linear Opmode")
 @Disabled
 public class AutonomousOpenCV extends LinearOpMode {
@@ -136,24 +132,24 @@ public class AutonomousOpenCV extends LinearOpMode {
         // Assumes that the robot is facing the backdrop, aligned with the middle AprilTag, 16 inches from the backdrop
         // If it is near, assumes it'll get there first, so it delivers on the first row of the backdrop.
         // If it is coming from the far side, it assumes there is a pixel from the other team already there, so it delivers in the second row (risky because it can bounce)
-        int targetRow = isNear ? 1 : 2;
+        int rowTarget = isNear ? 1 : 2;
         // Strafe to face desiredAprilTag
         df.DriveStraight(DRIVE_SPEED, horizontalInchesFromBackdropCenter, backDropDirection, true);
-        if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(targetRow), DRIVE_SPEED)) {
+        if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
             double dist = df.GetDistanceFromSensorInInches();
             if (dist > 0.0 && dist < 30.0) {
                 // Distance sensor worked fine
-                dist = dist - sf.IdealDistanceFromBackdropToDeliver(targetRow);
+                dist = dist - sf.IdealDistanceFromBackdropToDeliver(rowTarget);
             } else {
                 // Distance sensor didn't work, makes its best guess at the distance left
                 dist = 14;
             }
             df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
         }
-        mf.MoveSlidesToRowTarget(0.5, targetRow);
+        mf.MoveSlidesToRowTargetSync(0.3, rowTarget);
         sf.PutPixelOnBackDrop();
-        mf.MoveSlidesToRowTarget(0.5, 0); // Bring the slides back down, to start TeleOp in zero
+        mf.MoveSlidesToRowTargetSync(0.3, 0); // Bring the slides back down, to start TeleOp in zero
         // Gets away from the board after delivering pixel
         df.DriveStraight(DRIVE_SPEED, -6, backDropDirection, false);
     }
