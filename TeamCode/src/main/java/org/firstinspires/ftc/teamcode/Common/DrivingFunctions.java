@@ -89,17 +89,17 @@ public class DrivingFunctions {
 
     public void SetDirectionForward() {
         drivingForward = true;
-        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
     }
     public void SetDirectionBackward() {
         drivingForward = false;
-        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
     }
     public double GetDistanceFromSensorInInches() {
         if (distanceSensor == null)
