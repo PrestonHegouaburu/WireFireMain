@@ -44,8 +44,8 @@ public class ServoFunctions {
             servoName = "PixelReleaseServo";
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
-                rangeStart= 0.3;
-                rangeEnd = 0.94;
+                rangeStart= 0.32;
+                rangeEnd = 0.91;
             }
             else {
                 rangeStart= 0.4;
@@ -103,6 +103,7 @@ public class ServoFunctions {
     }
     public void PutPixelOnBackDrop()
     {
+        df.MoveRobot(0, 0, 0, 0);
         MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
         lom.sleep(300);
         MoveServoSmoothly(pixelReleaseServo, 0.0, 500);

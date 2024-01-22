@@ -70,7 +70,7 @@ public class DrivingFunctions {
         // Adjust the orientation parameters to match your robot
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+                 isRobotA ? RevHubOrientationOnRobot.UsbFacingDirection.RIGHT : RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
         SetDirectionForward();
@@ -89,22 +89,24 @@ public class DrivingFunctions {
 
     public void SetDirectionForward() {
         drivingForward = true;
-        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD: DcMotor.Direction.FORWARD);
     }
     public void SetDirectionBackward() {
         drivingForward = false;
-        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
+        leftFrontDrive.setDirection(isRobotA ? DcMotor.Direction.FORWARD : DcMotor.Direction.FORWARD);
+        leftBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE : DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(isRobotA ? DcMotor.Direction.REVERSE: DcMotor.Direction.REVERSE);
     }
-    public double GetDistanceFromSensorInInches() {
+    public double GetDistanceFromSensorInInches(double minExpectedDistance, double maxExpectedDistance) {
         if (distanceSensor == null)
             return 0.0;
-        return distanceSensor.getDistance(DistanceUnit.INCH);
+        double distance = distanceSensor.getDistance(DistanceUnit.INCH);
+        distance = distance < minExpectedDistance || distance > maxExpectedDistance ? 0.0 : distance;
+        return distance;
     }
     public void ResetYaw()
     {
@@ -225,22 +227,31 @@ public class DrivingFunctions {
      */
     public boolean DriveToAprilTag(AprilTagsFunctions atf, double desiredHeading, int desiredTag, double horizontalShiftFromTag,
                                    double desiredDistanceFromTagInches, double speedFactor) {
+        // Strafes left or right to align to target
         if(!atf.DetectAprilTag(desiredTag))
             return false;
         DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
+
+        // Uses AprilTag to get to 10 inches from target. If it's already at less than 10, it doesn't move
         if (!atf.DetectAprilTag(desiredTag))
             return false;
         double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
-        DriveStraight(0.8 * speedFactor, distance < 10 ? distance / 2 : distance - 10, desiredHeading, false);
-
-        for(int i=0; i<2; i++) {
-            if (!atf.DetectAprilTag(desiredTag))
-                return true;
-            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
-            if (!atf.DetectAprilTag(desiredTag))
-                return true;
-            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches, desiredHeading, false);
+        if (distance > 10) {
+            DriveStraight(speedFactor, distance - 10, desiredHeading, false);
+            distance = 10;
         }
+
+        // Strafes left or right to align to target once again
+        if(atf.DetectAprilTag(desiredTag))
+            DriveStraight(0.5 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
+
+        // Uses the distance sensor to get to the final position
+        // If the sensor returns more than 15 inches or less than 4 inches, we assume the sensor is wrong
+        // If the sensor is not working, it uses the latest distance estimation from the AprilTag
+        double sensorDistance = GetDistanceFromSensorInInches(4.0, 15.0);
+        distance = sensorDistance > 0.0 ? sensorDistance : distance;
+        DriveStraight(0.5 * speedFactor, distance - desiredDistanceFromTagInches, desiredHeading, false);
+
         return true;
     }
 
@@ -303,5 +314,32 @@ public class DrivingFunctions {
         if(!isRobotDrivingForward())
             rotatingSpeed = rotatingSpeed * -1;
         return rotatingSpeed;
+    }
+
+    public void TestWheelsEncoders() {
+        TestWheelEncoder("Front Left", leftFrontDrive, true);
+        TestWheelEncoder("Front Left", leftFrontDrive, false);
+        TestWheelEncoder("Front Right", rightFrontDrive, true);
+        TestWheelEncoder("Front Right", rightFrontDrive, false);
+        TestWheelEncoder("Back Left", leftBackDrive, true);
+        TestWheelEncoder("Back Left", leftBackDrive, false);
+        TestWheelEncoder("Back Right", rightBackDrive, true);
+        TestWheelEncoder("Back Right", rightBackDrive, false);
+    }
+    private void TestWheelEncoder(String wheelName, DcMotor wheel, boolean forward)
+    {
+        String movingDirection;
+        movingDirection = forward ? "Moving Forward..." : "Moving Backward...";
+        lom.telemetry.addData("Testing Wheel", wheelName);
+        lom.telemetry.addLine(movingDirection);
+        wheel.setPower(forward ? 0.1 : -0.1);
+        for(int i = 0; i < 10; i++) {
+            lom.telemetry.addData("Testing Wheel", wheelName);
+            lom.telemetry.addLine(movingDirection);
+            lom.telemetry.addData("Wheel position", "%d", wheel.getCurrentPosition());
+            lom.telemetry.update();
+            lom.sleep(300);
+        }
+        wheel.setPower(0);
     }
 }

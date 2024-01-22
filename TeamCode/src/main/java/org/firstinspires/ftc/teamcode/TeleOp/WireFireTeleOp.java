@@ -18,7 +18,7 @@ public class WireFireTeleOp extends LinearOpMode {
     protected DrivingFunctions df = null;
     protected ServoFunctions sf = null;
     protected MotorFunctions mf = null;
-    protected double intakeSpeed = 0.85;
+    protected double intakeSpeed = 1;
     protected double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
     protected boolean IsTestMode = false;
     protected boolean isRedTeam = true;
@@ -105,7 +105,8 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     private void ProcessPixelDelivery() {
         if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
-            sf.PutPixelOnBackDrop();
+             sf.PutPixelOnBackDrop();
+
         if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5) {
             // Auto-aligning only works in the forward direction
             df.SetDirectionForward();
@@ -115,7 +116,7 @@ public class WireFireTeleOp extends LinearOpMode {
             else // in even rows we have 0 shift in even columns, and -3 for odd, except for 7 it is 3
                 horizontalShift = columnTarget == 7 ? 3.0 : (columnTarget % 2 == 0 ? 0.0 : -3.0);
 
-            if(!df.DriveToAprilTag(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.7))
+            if(!df.DriveToAprilTag(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
             sf.PutPixelOnBackDrop();
             df.DriveStraight(0.6, -3.0, df.GetHeading(), false);
@@ -188,7 +189,7 @@ public class WireFireTeleOp extends LinearOpMode {
             autoTurningTarget = currentGamepad1.y ? 0.0 : currentGamepad1.x ? 90.0 : currentGamepad1.b ? -90.0 : 179.9;
             autoTurningStart = runtime.milliseconds();
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
-            autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 1000;
+            autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 350;
         }
         if (isAutoTurning) {
             double currentTime = runtime.milliseconds();
@@ -233,9 +234,11 @@ public class WireFireTeleOp extends LinearOpMode {
         currentGamepad2.copy(gamepad2);
     }
     protected void UpdateTelemetry() {
+        telemetry.addData("Heading", "%4.2f", df.GetHeading());
         telemetry.addData("TargetAprilTag", "%d", targetAprilTag);
         telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
-        telemetry.addData("Distance", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
+        telemetry.addData("Distance (AprilTag)", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
+        telemetry.addData("Distance (Sensor)", "%4.2f", df.GetDistanceFromSensorInInches(0.5, 80.0));
         telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("Backdrop Row Target", "%2d", rowTarget);

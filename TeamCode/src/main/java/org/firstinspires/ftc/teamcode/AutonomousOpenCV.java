@@ -137,14 +137,14 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED, horizontalInchesFromBackdropCenter, backDropDirection, true);
         if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
-            double dist = df.GetDistanceFromSensorInInches();
-            if (dist > 0.0 && dist < 30.0) {
+            double dist = df.GetDistanceFromSensorInInches(2.0, 20.0);
+            if (dist > 0.0)
                 // Distance sensor worked fine
                 dist = dist - sf.IdealDistanceFromBackdropToDeliver(rowTarget);
-            } else {
+            else
                 // Distance sensor didn't work, makes its best guess at the distance left
                 dist = 14;
-            }
+
             df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
         }
         mf.MoveSlidesToRowTargetSync(0.3, rowTarget);
