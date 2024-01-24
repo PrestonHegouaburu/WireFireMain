@@ -48,6 +48,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     public void runOpMode() {
         Initialize();
         waitForStart();
+        df.ResetYaw();
         runtime.reset();
         if(RunningTests())
             return;

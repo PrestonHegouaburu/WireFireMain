@@ -104,9 +104,10 @@ public class ServoFunctions {
     public void PutPixelOnBackDrop()
     {
         df.MoveRobot(0, 0, 0, 0);
-        MoveServoSmoothly(pixelReleaseServo, 1.0, 800);
+        MoveServoSmoothly(pixelReleaseServo, 0.2, 300);
+        MoveServoSmoothly(pixelReleaseServo, 1.0, 100);
         lom.sleep(300);
-        MoveServoSmoothly(pixelReleaseServo, 0.0, 500);
+        MoveServoSmoothly(pixelReleaseServo, 0.0, 600);
     }
     public void MoveServoRelative(Servo s, double delta)
     {

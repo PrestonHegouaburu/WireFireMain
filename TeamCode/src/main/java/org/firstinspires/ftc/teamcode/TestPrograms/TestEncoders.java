@@ -5,8 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Common.DrivingFunctions;
+import org.firstinspires.ftc.teamcode.Common.ServoFunctions;
 
-@Autonomous(name="Autonomous - Test Encoders", group="Linear Opmode")
+@Autonomous(name="Autonomous - Test Encoders", group="Other Tests")
 //@Disabled
 public class TestEncoders extends LinearOpMode {
     private DrivingFunctions df;
