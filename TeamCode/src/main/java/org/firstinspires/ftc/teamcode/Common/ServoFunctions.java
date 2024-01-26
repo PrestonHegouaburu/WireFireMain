@@ -9,6 +9,7 @@ import java.util.List;
 public class ServoFunctions {
     private LinearOpMode lom = null;
     private DrivingFunctions df;
+    private MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
     private Servo fingerServoTop = null;
@@ -28,10 +29,11 @@ public class ServoFunctions {
     }
     public List<ServoInfo> servoList;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
-    public ServoFunctions(LinearOpMode l, DrivingFunctions df)
+    public ServoFunctions(LinearOpMode l, DrivingFunctions df, MotorFunctions mf)
     {
         lom = l;
         this.df = df;
+        this.mf = mf;
         Initialize();
     }
     private void Initialize()
@@ -44,8 +46,8 @@ public class ServoFunctions {
             servoName = "PixelReleaseServo";
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
-                rangeStart= 0.32;
-                rangeEnd = 0.91;
+                rangeStart= 0.11;
+                rangeEnd = 0.76;
             }
             else {
                 rangeStart= 0.4;
@@ -99,15 +101,17 @@ public class ServoFunctions {
         planeLaunchServo.setPosition(0.0);
     }
     public double IdealDistanceFromBackdropToDeliver(int targetRow) {
-        return 5.0;
+        return 3.0;
     }
-    public void PutPixelOnBackDrop()
+    public void PutPixelOnBackDrop(int targetRow)
     {
         df.MoveRobot(0, 0, 0, 0);
-        MoveServoSmoothly(pixelReleaseServo, 0.2, 300);
-        MoveServoSmoothly(pixelReleaseServo, 1.0, 100);
-        lom.sleep(300);
+        MoveServoSmoothly(pixelReleaseServo, 0.3, 300);
+        mf.MoveSlidesToRowTargetSync(0.5, targetRow);
+        MoveServoSmoothly(pixelReleaseServo, 1.0, 200);
+        lom.sleep(500);
         MoveServoSmoothly(pixelReleaseServo, 0.0, 600);
+        mf.MoveSlidesToRowTargetSync(0.5, 0);
     }
     public void MoveServoRelative(Servo s, double delta)
     {

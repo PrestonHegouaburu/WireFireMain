@@ -27,15 +27,15 @@ public class WireFireTeleOp extends LinearOpMode {
     private boolean isAutoTurning = false;
     private double autoTurningStart, autoTurningTarget, autoTurningTimeoutMilliseconds;
     private int columnTarget = 1; // from 1 to 7
-    private int rowTarget = 0;
+    private int rowTarget = 2;
     private int targetAprilTag;
     private boolean areSlidesMovingManually = false;
     private void Init() {
         df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this, df);
+        mf = new MotorFunctions(this);
+        sf = new ServoFunctions(this, df, mf);
         af = new AprilTagsFunctions(this, isRedTeam);
         af.RunAprilTagProcessorOnly();
-        mf = new MotorFunctions(this);
         currentGamepad1 = new Gamepad();
         previousGamepad1 = new Gamepad();
         currentGamepad2 = new Gamepad();
@@ -67,15 +67,10 @@ public class WireFireTeleOp extends LinearOpMode {
     }
 
     private void UpdateSlidesPosition() {
-        if(!areSlidesMovingManually && !gamepad2.dpad_down && !gamepad2.dpad_up)
-            mf.MoveSlidesToRowTargetAsync(0.3, rowTarget);
-
         if(areSlidesMovingManually && !gamepad2.dpad_down && !gamepad2.dpad_up) {
             areSlidesMovingManually = false;
             mf.MoveSlides(0);
-            rowTarget = mf.getRowFromPosition();
         }
-
         if(gamepad2.dpad_up) {
             areSlidesMovingManually = true;
             mf.MoveSlides(0.6);
@@ -84,7 +79,6 @@ public class WireFireTeleOp extends LinearOpMode {
             areSlidesMovingManually = true;
             mf.MoveSlides(-0.6);
         }
-
     }
     private void IntakeCommands() {
         if (currentGamepad2.left_trigger > 0)
@@ -105,7 +99,7 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     private void ProcessPixelDelivery() {
         if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
-             sf.PutPixelOnBackDrop();
+             sf.PutPixelOnBackDrop(rowTarget);
 
         if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5) {
             // Auto-aligning only works in the forward direction
@@ -118,7 +112,7 @@ public class WireFireTeleOp extends LinearOpMode {
 
             if(!df.DriveToAprilTag(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
-            sf.PutPixelOnBackDrop();
+            sf.PutPixelOnBackDrop(rowTarget);
             df.DriveStraight(0.6, -3.0, df.GetHeading(), false);
         }
     }
@@ -234,11 +228,11 @@ public class WireFireTeleOp extends LinearOpMode {
         currentGamepad2.copy(gamepad2);
     }
     protected void UpdateTelemetry() {
-        telemetry.addData("Heading", "%4.2f", df.GetHeading());
+        //telemetry.addData("Heading", "%4.2f", df.GetHeading());
         telemetry.addData("TargetAprilTag", "%d", targetAprilTag);
-        telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
-        telemetry.addData("Distance (AprilTag)", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
-        telemetry.addData("Distance (Sensor)", "%4.2f", df.GetDistanceFromSensorInInches(0.5, 80.0));
+        //telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
+        //telemetry.addData("Distance (AprilTag)", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
+        //telemetry.addData("Distance (Sensor)", "%4.2f", df.GetDistanceFromSensorInInches(0.5, 80.0));
         telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("Backdrop Row Target", "%2d", rowTarget);

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Common.DrivingFunctions;
+import org.firstinspires.ftc.teamcode.Common.MotorFunctions;
 import org.firstinspires.ftc.teamcode.Common.ServoFunctions;
 
 @TeleOp(name="Calibrate Servos", group="Test TeleOp")
@@ -19,7 +20,7 @@ public class CalibrateServos extends LinearOpMode {
         previousGamepad1 = new Gamepad();
 
         df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this, df);
+        sf = new ServoFunctions(this, df, new MotorFunctions(this));
         if(sf.servoList.size() == 0) {
             telemetry.addLine("No Servos found on this robot -- terminating");
             telemetry.update();

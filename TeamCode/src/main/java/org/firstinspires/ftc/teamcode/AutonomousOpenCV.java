@@ -28,8 +28,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     private double backDropDirection = 90.0;
     private void Initialize() {
         df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this, df);
         mf = new MotorFunctions(this);
+        sf = new ServoFunctions(this, df, mf);
         af = new AprilTagsFunctions(this, isRed);
         af.RunCircleProcessorOnly();
     }
@@ -93,16 +93,16 @@ public class AutonomousOpenCV extends LinearOpMode {
         if (!movingAwayFromTruss)
             df.DriveStraight(DRIVE_SPEED, isRight ? -10 : 10, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 20 : 27, angle, false);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -20 : -27, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 17 : 24, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -17 : -24, angle, false);
         df.TurnToHeading(TURN_SPEED,0);
         if (!movingAwayFromTruss) // if it strafed, now it goes back to the start position
             df.DriveStraight(DRIVE_SPEED, isRight ? 10 : -10, 0, true);
     }
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
-        df.DriveStraight(DRIVE_SPEED,31 , 0, false);
-        df.DriveStraight(DRIVE_SPEED, -25, 0, false);
+        df.DriveStraight(DRIVE_SPEED,28.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED, -22.5, 0, false);
     }
     private void DriveToBackDropFromNearSide() {
         // Ends aligned with the center AprilTag, 11" away from the backdrop
@@ -115,17 +115,18 @@ public class AutonomousOpenCV extends LinearOpMode {
     private void DriveToBackDropFromFarSide() {
         // Ends aligned with the center AprilTag, 11" away from the backdrop
         df.DriveStraight(DRIVE_SPEED, -3, 0, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? -24 : 24, 0, true);
+        df.DriveStraight(DRIVE_SPEED, isRed ? -24.5 : 24.5, 0, true);
         df.DriveStraight(DRIVE_SPEED, 46, 0, false);
+        df.DriveStraight(DRIVE_SPEED, isRed ? 4 : -4, 0, true);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
         // Wait until there are 10 seconds left
-        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 15000;
+        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 17000;
         if (timeToWaitMilliseconds < 0)
             timeToWaitMilliseconds = 0;
         telemetry.addData("Wait this number of milliseconds", "%d", timeToWaitMilliseconds);
         telemetry.update();
         sleep(timeToWaitMilliseconds);
-        df.DriveStraight(DRIVE_SPEED * 1.5, 100, backDropDirection, false);
+        df.DriveStraight(DRIVE_SPEED * 1.5, 93, backDropDirection, false);
         df.DriveStraight(DRIVE_SPEED, isRed ? 26 : -26, backDropDirection, true);
     }
     protected void DeliverPixel(double horizontalInchesFromBackdropCenter)
@@ -133,12 +134,12 @@ public class AutonomousOpenCV extends LinearOpMode {
         // Assumes that the robot is facing the backdrop, aligned with the middle AprilTag, 16 inches from the backdrop
         // If it is near, assumes it'll get there first, so it delivers on the first row of the backdrop.
         // If it is coming from the far side, it assumes there is a pixel from the other team already there, so it delivers in the second row (risky because it can bounce)
-        int rowTarget = isNear ? 1 : 2;
+        int rowTarget = isNear ? 0 : 1;
         // Strafe to face desiredAprilTag
         df.DriveStraight(DRIVE_SPEED, horizontalInchesFromBackdropCenter, backDropDirection, true);
         if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
-            double dist = df.GetDistanceFromSensorInInches(2.0, 20.0);
+            double dist = df.GetDistanceFromSensorInInches(1.0, 20.0);
             if (dist > 0.0)
                 // Distance sensor worked fine
                 dist = dist - sf.IdealDistanceFromBackdropToDeliver(rowTarget);
@@ -148,9 +149,7 @@ public class AutonomousOpenCV extends LinearOpMode {
 
             df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
         }
-        mf.MoveSlidesToRowTargetSync(0.3, rowTarget);
-        sf.PutPixelOnBackDrop();
-        mf.MoveSlidesToRowTargetSync(0.3, 0); // Bring the slides back down, to start TeleOp in zero
+        sf.PutPixelOnBackDrop(rowTarget);
         // Gets away from the board after delivering pixel
         df.DriveStraight(DRIVE_SPEED, -6, backDropDirection, false);
     }
@@ -161,9 +160,9 @@ public class AutonomousOpenCV extends LinearOpMode {
         if (this.cornerPark)
             df.DriveStraight(DRIVE_SPEED, isRed ? 26-horizontalCorrection : -26-horizontalCorrection, backDropDirection, true);
         else
-            df.DriveStraight(DRIVE_SPEED, isRed ? -24-horizontalCorrection : 24-horizontalCorrection, backDropDirection, true);
+            df.DriveStraight(DRIVE_SPEED, isRed ? -26-horizontalCorrection : 26-horizontalCorrection, backDropDirection, true);
         //Pushes against the wall to end parking
-        df.DriveStraight(DRIVE_SPEED, 10, backDropDirection, false);
+        df.DriveStraight(DRIVE_SPEED, 14, backDropDirection, false);
     }
 
     private void RunBallDetectionTest() {
