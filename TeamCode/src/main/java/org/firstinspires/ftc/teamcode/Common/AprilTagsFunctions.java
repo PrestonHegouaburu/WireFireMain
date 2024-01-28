@@ -139,12 +139,19 @@ public class AprilTagsFunctions {
     }
     public void UpdateCircleDetectionTelemetry(int tries)
     {
-        lom.telemetry.addData("Tries: ", tries);
-        lom.telemetry.addData("Frames processed: ", circleDetection.FramesProcessed());
+        lom.telemetry.addData("Tries", tries);
+        lom.telemetry.addData("Frames processed", circleDetection.FramesProcessed());
+        lom.telemetry.addData("Total No Detection", circleDetection.totalNoDetection);
+        lom.telemetry.addData("Total One Circle", circleDetection.totalOneCircle);
+        lom.telemetry.addData("Total Many Circles", circleDetection.totalManyCircles);
+        lom.telemetry.addData("Total Left", circleDetection.totalLeft);
+        lom.telemetry.addData("Total Center", circleDetection.totalCenter);
+        lom.telemetry.addData("Total Right", circleDetection.totalRight);
         lom.telemetry.addData("FPS", String.format("%.2f", visionPortal.getFps()));
-        lom.telemetry.addData("Circles detected: ", "%d", circleDetection.NumCirclesFound());
-        lom.telemetry.addData("Circle center = ", "%4.0f, %4.0f", circleDetection.CircleCenter().x, circleDetection.CircleCenter().y);
-        lom.telemetry.addData("Ball Position: ", "%s", circleDetection.GetBallPosition());
+        lom.telemetry.addData("Circles detected", "%d", circleDetection.NumCirclesFound());
+        lom.telemetry.addData("Circle center", "%4.0f, %4.0f", circleDetection.CircleCenter().x, circleDetection.CircleCenter().y);
+        lom.telemetry.addData("Circle radius", "%4.2f", circleDetection.CircleRadius());
+        lom.telemetry.addData("Ball Position", "%s", circleDetection.GetBallPosition());
         lom.telemetry.update();
     }
 }

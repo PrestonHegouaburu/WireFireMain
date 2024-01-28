@@ -106,14 +106,14 @@ public class WireFireTeleOp extends LinearOpMode {
             df.SetDirectionForward();
             double horizontalShift;
             if(rowTarget % 2 == 1)  // in odd rows the shift is 1.5 for even columns and -1.5 for odd columns
-                horizontalShift = columnTarget % 2 == 0 ? 1.5 : -1.5;
+                horizontalShift = columnTarget % 2 == 0 ? 1 : -1;
             else // in even rows we have 0 shift in even columns, and -3 for odd, except for 7 it is 3
-                horizontalShift = columnTarget == 7 ? 3.0 : (columnTarget % 2 == 0 ? 0.0 : -3.0);
+                horizontalShift = columnTarget == 7 ? 2.0 : (columnTarget % 2 == 0 ? 0.0 : -2.0);
 
             if(!df.DriveToAprilTag(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
             sf.PutPixelOnBackDrop(rowTarget);
-            df.DriveStraight(0.6, -3.0, df.GetHeading(), false);
+            df.DriveStraight(0.6, -6.0, df.GetHeading(), false);
         }
     }
     private void SetBackdropTargets() {

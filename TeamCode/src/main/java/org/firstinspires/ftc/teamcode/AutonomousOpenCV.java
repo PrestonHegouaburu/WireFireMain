@@ -22,8 +22,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     protected boolean isNear = false; // whether we start from the near side of the backdrop
     protected boolean cornerPark = true; // whether we part on the corner or in the middle
     protected boolean runBallDetectionTest = false;
-    static final double DRIVE_SPEED = 0.4;
-    static final double TURN_SPEED = 0.5;
+    static final double DRIVE_SPEED = 0.5;
+    static final double TURN_SPEED = 0.55;
     private int desiredTag = 0;
     private double backDropDirection = 90.0;
     private void Initialize() {
@@ -33,56 +33,66 @@ public class AutonomousOpenCV extends LinearOpMode {
         af = new AprilTagsFunctions(this, isRed);
         af.RunCircleProcessorOnly();
     }
-    private void DetectBallPosition(int timeoutInSeconds) {
+    private CircleDetection.BallPosition DetectBallPosition(int timeoutInSeconds) {
         int tries = 0;
-        while (opModeIsActive() && !af.circleDetection.CircleFound() && tries < timeoutInSeconds * 10) {
+        CircleDetection.BallPosition bp;
+        while (opModeIsActive() && tries++ < timeoutInSeconds * 10 && !af.circleDetection.CircleFound(10)) {
             sleep(100);
-            tries++;
             af.UpdateCircleDetectionTelemetry(tries);
         }
-        if (!af.circleDetection.CircleFound())
-            af.circleDetection.SetBallPosition(CircleDetection.BallPosition.LEFT); // Ball not found, makes a guess to the left
+        bp = af.circleDetection.GetBallPosition();
+        if (bp == CircleDetection.BallPosition.UNDEFINED)
+             bp = CircleDetection.BallPosition.LEFT; // Ball not found, makes a guess to the left
         af.RunAprilTagProcessorOnly();
+        return bp;
     }
     @Override
     public void runOpMode() {
         Initialize();
         waitForStart();
+        af.circleDetection.ResetTotals();
         df.ResetYaw();
         runtime.reset();
         if(RunningTests())
             return;
 
-        DetectBallPosition(5);
+        CircleDetection.BallPosition bp = DetectBallPosition(3);
 
         double horizontalInchesFromBackdropCenter = 0;
+        double strafeCorrection = 0;
 
-        if(af.circleDetection.GetBallPosition() == CircleDetection.BallPosition.LEFT) {
+        if(bp == CircleDetection.BallPosition.LEFT) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
-            PushPixelSide(false);
+            strafeCorrection = PushPixelSide(false);
             horizontalInchesFromBackdropCenter = -7;
-        } else if(af.circleDetection.GetBallPosition() == CircleDetection.BallPosition.CENTER) {
+        } else if(bp == CircleDetection.BallPosition.CENTER) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
             horizontalInchesFromBackdropCenter = 0;
         } else { // Right
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_RIGHT : AprilTagsFunctions.TAG_BLUE_RIGHT;
-            PushPixelSide(true);
+            strafeCorrection = PushPixelSide(true);
             horizontalInchesFromBackdropCenter = 7;
         }
         backDropDirection = isRed ? -90.0 : 90.0;
 
         if(isNear)
-            DriveToBackDropFromNearSide();
+            DriveToBackDropFromNearSide(strafeCorrection, horizontalInchesFromBackdropCenter);
         else
-            DriveToBackDropFromFarSide();
+            DriveToBackDropFromFarSide(strafeCorrection, horizontalInchesFromBackdropCenter);
 
-        DeliverPixel(horizontalInchesFromBackdropCenter);
+        DeliverPixel();
         ParkRobot(horizontalInchesFromBackdropCenter);
     }
-    protected void PushPixelSide(boolean isRight) {
+    private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
+        df.DriveStraight(DRIVE_SPEED,28.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED, -22.5, 0, false);
+    }
+    protected double PushPixelSide(boolean isRight) {
+        // Ends in the center, 6" forward from starting point (shifted by strafeCorrection)
         double angle;
+        double strafeCorrection = 0.0;
         boolean movingAwayFromTruss = (isRight && isNear && isRed) || (isRight && !isNear && !isRed) ||
                 (!isRight && !isNear && isRed) || (!isRight && isNear && !isRed);
         df.DriveStraight(DRIVE_SPEED, 6, 0, false);
@@ -96,47 +106,38 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 17 : 24, angle, false);
         df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -17 : -24, angle, false);
         df.TurnToHeading(TURN_SPEED,0);
-        if (!movingAwayFromTruss) // if it strafed, now it goes back to the start position
-            df.DriveStraight(DRIVE_SPEED, isRight ? 10 : -10, 0, true);
+        if (!movingAwayFromTruss) // if it strafed, it returns the distance it did, for later correction
+            strafeCorrection = 10.0;
+        return strafeCorrection;
     }
-    private void PushPixelCenter() {
-        // Ends in the center, 6" forward from starting point
-        df.DriveStraight(DRIVE_SPEED,28.5 , 0, false);
-        df.DriveStraight(DRIVE_SPEED, -22.5, 0, false);
-    }
-    private void DriveToBackDropFromNearSide() {
-        // Ends aligned with the center AprilTag, 11" away from the backdrop
-        df.DriveStraight(DRIVE_SPEED, -3, 0, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? 28 : -28, 0, true);
-        df.DriveStraight(DRIVE_SPEED, 22, 0, false);
+    private void DriveToBackDropFromNearSide(double strafeCorrection, double horizontalInchesFromBackdropCenter) {
+        // Ends aligned with the proper AprilTag, 11" away from the backdrop
+        df.DriveStraight(DRIVE_SPEED, isRed ? 30  - strafeCorrection : -30 + strafeCorrection, 0, true);
+        df.DriveStraight(DRIVE_SPEED, isRed ? 19 - horizontalInchesFromBackdropCenter : 19 + horizontalInchesFromBackdropCenter, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
-        df.DriveStraight(DRIVE_SPEED, 2, backDropDirection, false);
     }
-    private void DriveToBackDropFromFarSide() {
-        // Ends aligned with the center AprilTag, 11" away from the backdrop
-        df.DriveStraight(DRIVE_SPEED, -3, 0, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? -24.5 : 24.5, 0, true);
-        df.DriveStraight(DRIVE_SPEED, 46, 0, false);
+    private void DriveToBackDropFromFarSide(double strafeCorrection, double horizontalInchesFromBackdropCenter) {
+        // Ends aligned with the proper AprilTag, 11" away from the backdrop
+        df.DriveStraight(DRIVE_SPEED, isRed ? -24.5 + strafeCorrection: 24.5 - strafeCorrection, 0, true);
+        df.DriveStraight(DRIVE_SPEED, 44, 0, false);
         df.DriveStraight(DRIVE_SPEED, isRed ? 4 : -4, 0, true);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
-        // Wait until there are 10 seconds left
-        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 17000;
-        if (timeToWaitMilliseconds < 0)
-            timeToWaitMilliseconds = 0;
-        telemetry.addData("Wait this number of milliseconds", "%d", timeToWaitMilliseconds);
+        // Wait until there are 13 seconds left
+        long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 13000;
+        timeToWaitMilliseconds  = timeToWaitMilliseconds < 0 ? 0 : timeToWaitMilliseconds;
+        telemetry.addData("Wait this number of milliseconds", timeToWaitMilliseconds);
         telemetry.update();
         sleep(timeToWaitMilliseconds);
-        df.DriveStraight(DRIVE_SPEED * 1.5, 93, backDropDirection, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? 26 : -26, backDropDirection, true);
+        df.DriveStraight(DRIVE_SPEED * 1.4, 93, backDropDirection, false);
+        df.DriveStraight(DRIVE_SPEED, isRed ? 26 + horizontalInchesFromBackdropCenter : -26 + horizontalInchesFromBackdropCenter, backDropDirection, true);
     }
-    protected void DeliverPixel(double horizontalInchesFromBackdropCenter)
+    protected void DeliverPixel()
     {
-        // Assumes that the robot is facing the backdrop, aligned with the middle AprilTag, 16 inches from the backdrop
+        // Assumes that the robot is facing the backdrop, aligned with the correct AprilTag, 16 inches from the backdrop
         // If it is near, assumes it'll get there first, so it delivers on the first row of the backdrop.
         // If it is coming from the far side, it assumes there is a pixel from the other team already there, so it delivers in the second row (risky because it can bounce)
         int rowTarget = isNear ? 0 : 1;
-        // Strafe to face desiredAprilTag
-        df.DriveStraight(DRIVE_SPEED, horizontalInchesFromBackdropCenter, backDropDirection, true);
+
         if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
             double dist = df.GetDistanceFromSensorInInches(1.0, 20.0);
