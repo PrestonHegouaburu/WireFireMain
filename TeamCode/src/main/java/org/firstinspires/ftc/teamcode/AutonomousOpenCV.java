@@ -22,7 +22,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     protected boolean isNear = false; // whether we start from the near side of the backdrop
     protected boolean cornerPark = true; // whether we part on the corner or in the middle
     protected boolean runBallDetectionTest = false;
-    static final double DRIVE_SPEED = 0.5;
+    static final double DRIVE_SPEED = 0.6;
     static final double TURN_SPEED = 0.55;
     private int desiredTag = 0;
     private double backDropDirection = 90.0;
@@ -86,8 +86,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
-        df.DriveStraight(DRIVE_SPEED,28.5 , 0, false);
-        df.DriveStraight(DRIVE_SPEED, -22.5, 0, false);
+        df.DriveStraight(DRIVE_SPEED,30.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED, -24.5, 0, false);
     }
     protected double PushPixelSide(boolean isRight) {
         // Ends in the center, 6" forward from starting point (shifted by strafeCorrection)
@@ -103,8 +103,8 @@ public class AutonomousOpenCV extends LinearOpMode {
         if (!movingAwayFromTruss)
             df.DriveStraight(DRIVE_SPEED, isRight ? -10 : 10, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 17 : 24, angle, false);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -17 : -24, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 19 : 26, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -19 : -26, angle, false);
         df.TurnToHeading(TURN_SPEED,0);
         if (!movingAwayFromTruss) // if it strafed, it returns the distance it did, for later correction
             strafeCorrection = 10.0;
@@ -138,7 +138,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         // If it is coming from the far side, it assumes there is a pixel from the other team already there, so it delivers in the second row (risky because it can bounce)
         int rowTarget = isNear ? 0 : 1;
 
-        if(!df.DriveToAprilTag(af, backDropDirection, desiredTag, 0, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
+        if(!df.DriveToAprilTagAutonomous(af, backDropDirection, desiredTag, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
             double dist = df.GetDistanceFromSensorInInches(1.0, 20.0);
             if (dist > 0.0)

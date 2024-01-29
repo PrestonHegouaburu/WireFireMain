@@ -87,7 +87,7 @@ public class CircleDetection implements VisionProcessor {
 
         Imgproc.GaussianBlur(frame, frame, new org.opencv.core.Size(15.0, 15.0), 2, 2);
         Mat circles = new Mat();
-        Imgproc.HoughCircles(frame, circles, Imgproc.HOUGH_GRADIENT, 1, 300, 120, 25);
+        Imgproc.HoughCircles(frame, circles, Imgproc.HOUGH_GRADIENT, 1, 300, 120, 25, 30, 70);
 
         numCirclesFound = circles.cols();
         if (numCirclesFound == 1) {

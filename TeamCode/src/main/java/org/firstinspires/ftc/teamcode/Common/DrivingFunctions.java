@@ -225,12 +225,12 @@ public class DrivingFunctions {
     /* Assumes that the robot is in a position to see the desired tag, and fully squared parallel to the backdrop. If it can't see the desired tag, it returns false.
     After successfully driving to the desired tag (aligning perfectly so it is facing it directly at the desired distance, it returns true
      */
-    public boolean DriveToAprilTag(AprilTagsFunctions atf, double desiredHeading, int desiredTag, double horizontalShiftFromTag,
+    public boolean DriveToAprilTagAutonomous(AprilTagsFunctions atf, double desiredHeading, int desiredTag,
                                    double desiredDistanceFromTagInches, double speedFactor) {
         // Strafes left or right to align to target
         if(!atf.DetectAprilTag(desiredTag))
             return false;
-        DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x+horizontalShiftFromTag, desiredHeading, true);
+        DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x, desiredHeading, true);
 
         // Uses AprilTag to get to 10 inches from target. If it's already at less than 10, it doesn't move
         if (!atf.DetectAprilTag(desiredTag))
@@ -243,8 +243,50 @@ public class DrivingFunctions {
 
         // Strafes left or right to align to target once again
         if(atf.DetectAprilTag(desiredTag))
-            DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x + horizontalShiftFromTag, desiredHeading, true);
+            DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x, desiredHeading, true);
 
+        // Uses the distance sensor to get to the final position
+        // If the sensor returns more than 15 inches or less than 2 inches, we assume the sensor is wrong
+        // If the sensor is not working, it uses the latest distance estimation from the AprilTag
+        double sensorDistance = GetDistanceFromSensorInInches(2.0, 15.0);
+        distance = sensorDistance > 0.0 ? sensorDistance : distance;
+        DriveStraight(0.5 * speedFactor, distance - desiredDistanceFromTagInches, desiredHeading, false);
+
+        return true;
+    }
+
+    public boolean DriveToAprilTagTeleop(AprilTagsFunctions atf, double desiredHeading, int desiredTag, double horizontalShiftFromTag,
+                                             double desiredDistanceFromTagInches, double speedFactor) {
+
+        // Strafes to align with the April tag
+        if(!atf.DetectAprilTag(desiredTag))
+            return false;
+        DriveStraight(speedFactor, atf.detectedTag.ftcPose.x, GetHeading(), true);
+
+        // Gets to 15" from AprilTag
+        if(!atf.DetectAprilTag(desiredTag))
+            return false;
+        double horizontalDistance = atf.detectedTag.ftcPose.range * Math.sin(Math.toRadians(atf.detectedTag.ftcPose.yaw));
+        horizontalDistance += atf.detectedTag.ftcPose.x;
+
+        DriveStraight(speedFactor, atf.detectedTag.ftcPose.range-15, GetHeading(), false);
+        if(atf.DetectAprilTag(desiredTag)) {
+            horizontalDistance = atf.detectedTag.ftcPose.range * Math.sin(Math.toRadians(atf.detectedTag.ftcPose.yaw));
+            horizontalDistance += atf.detectedTag.ftcPose.x;
+        }
+        // Faces the backdrop
+        TurnToHeading(speedFactor, desiredHeading);
+        // Strafes left or right to align to target
+        DriveStraight(0.7 * speedFactor, horizontalDistance+horizontalShiftFromTag, desiredHeading, true);
+
+        // Uses AprilTag to get to 10 inches from target. If it's already at less than 10, it doesn't move
+        if (!atf.DetectAprilTag(desiredTag))
+            return false;
+        double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
+        if (distance > 10) {
+            DriveStraight(speedFactor, distance - 10, desiredHeading, false);
+            distance = 10;
+        }
         // Uses the distance sensor to get to the final position
         // If the sensor returns more than 15 inches or less than 2 inches, we assume the sensor is wrong
         // If the sensor is not working, it uses the latest distance estimation from the AprilTag
