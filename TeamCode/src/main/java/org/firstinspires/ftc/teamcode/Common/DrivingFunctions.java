@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Common;
 
+import com.kauailabs.navx.ftc.AHRS;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,6 +11,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
+
 
 public class DrivingFunctions {
     private boolean isRobotA = false;
@@ -19,7 +22,8 @@ public class DrivingFunctions {
     private DcMotor rightBackDrive = null;
     private DistanceSensor distanceSensor = null;
     private boolean drivingForward = true;
-    private IMU imu = null;
+//    private IMU imu = null;
+    private AHRS navx_device;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
     private final ElapsedTime runtime = new ElapsedTime();
@@ -66,13 +70,14 @@ public class DrivingFunctions {
         }
         catch(Exception e) {
         }
-        imu = lom.hardwareMap.get(IMU.class, "imu");
+        //imu = lom.hardwareMap.get(IMU.class, "imu");
+        navx_device = AHRS.getInstance(lom.hardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData);
         // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                isRobotA ? RevHubOrientationOnRobot.LogoFacingDirection.UP : RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                isRobotA ? RevHubOrientationOnRobot.UsbFacingDirection.RIGHT : RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        //IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+        //        isRobotA ? RevHubOrientationOnRobot.LogoFacingDirection.UP : RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+        //        isRobotA ? RevHubOrientationOnRobot.UsbFacingDirection.RIGHT : RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
+        //imu.initialize(parameters);
         SetDirectionForward();
         // Ensure the robot is stationary.  Reset the encoders and set the motors to BRAKE mode
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -110,7 +115,8 @@ public class DrivingFunctions {
     }
     public void ResetYaw()
     {
-        imu.resetYaw();
+        //imu.resetYaw();
+        navx_device.zeroYaw();
     }
 
     /**
@@ -208,7 +214,7 @@ public class DrivingFunctions {
         // keep looping while we are still active, and not on heading.
         while ((runtime.milliseconds() - startTime) < timeout &&
                 lom.opModeIsActive() &&
-                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 2.0)) {
+                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 0.05)) {
             // Determine required steering to keep on heading
             double turnSpeed = GetSteeringCorrection(heading, P_TURN_GAIN);
 
@@ -279,14 +285,7 @@ public class DrivingFunctions {
         // Strafes left or right to align to target
         DriveStraight(0.7 * speedFactor, horizontalDistance+horizontalShiftFromTag, desiredHeading, true);
 
-        // Uses AprilTag to get to 10 inches from target. If it's already at less than 10, it doesn't move
-        if (!atf.DetectAprilTag(desiredTag))
-            return false;
-        double distance = atf.detectedTag.ftcPose.range - desiredDistanceFromTagInches;
-        if (distance > 10) {
-            DriveStraight(speedFactor, distance - 10, desiredHeading, false);
-            distance = 10;
-        }
+        double distance = 10.0;
         // Uses the distance sensor to get to the final position
         // If the sensor returns more than 15 inches or less than 2 inches, we assume the sensor is wrong
         // If the sensor is not working, it uses the latest distance estimation from the AprilTag
@@ -346,13 +345,16 @@ public class DrivingFunctions {
         rightBackDrive.setPower(rightBackPower * speedFactor);
     }
     public double GetHeading() {
-        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-        if(!isRobotDrivingForward())
+
+        double heading = navx_device.getYaw();
+        //imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        if(isRobotDrivingForward())
             heading = heading * -1;
         return heading;
     }
     public double GetRotatingSpeed() {
-        double rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+        //double rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+        double rotatingSpeed = navx_device.getWorldLinearAccelZ();
         if(!isRobotDrivingForward())
             rotatingSpeed = rotatingSpeed * -1;
         return rotatingSpeed;

@@ -86,7 +86,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     }
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
-        df.DriveStraight(DRIVE_SPEED,30.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED,24.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED * 0.3,8 , 0, false);
         df.DriveStraight(DRIVE_SPEED, -24.5, 0, false);
     }
     protected double PushPixelSide(boolean isRight) {
@@ -103,7 +104,8 @@ public class AutonomousOpenCV extends LinearOpMode {
         if (!movingAwayFromTruss)
             df.DriveStraight(DRIVE_SPEED, isRight ? -10 : 10, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 19 : 26, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 11 : 18 , angle, false);
+        df.DriveStraight(DRIVE_SPEED * 0.3, 8, angle, false);
         df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -19 : -26, angle, false);
         df.TurnToHeading(TURN_SPEED,0);
         if (!movingAwayFromTruss) // if it strafed, it returns the distance it did, for later correction

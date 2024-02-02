@@ -180,7 +180,7 @@ public class WireFireTeleOp extends LinearOpMode {
         if (isAutoTurning) {
             double currentTime = runtime.milliseconds();
             double deltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
-            if ((Math.abs(deltaDegrees) < 1.0 && Math.abs(df.GetRotatingSpeed()) < 2.0) || (currentTime - autoTurningStart > autoTurningTimeoutMilliseconds)) {
+            if ((Math.abs(deltaDegrees) < 1.0 && Math.abs(df.GetRotatingSpeed()) < 0.05) || (currentTime - autoTurningStart > autoTurningTimeoutMilliseconds)) {
                 isAutoTurning = false;
             } else {
                 yaw = kp * deltaDegrees / speedFactor;
@@ -221,6 +221,7 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     protected void UpdateTelemetry() {
         telemetry.addData("Heading", "%4.2f", df.GetHeading());
+        telemetry.addData("Rotating Speed", "%4.2f", df.GetRotatingSpeed());
         telemetry.addData("TargetAprilTag", "%d", targetAprilTag);
         telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
         telemetry.addData("AprilTag Range", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);

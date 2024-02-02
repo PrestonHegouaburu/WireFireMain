@@ -51,3 +51,13 @@ dependencies {
     implementation 'org.openftc:apriltag:2.0.0'
 }
 
+repositories {
+    flatDir {
+        dirs 'libs', '..\\libs'
+    }
+}
+
+dependencies {
+    implementation (name:'navx_ftc-release', ext:'aar')
+}
+
