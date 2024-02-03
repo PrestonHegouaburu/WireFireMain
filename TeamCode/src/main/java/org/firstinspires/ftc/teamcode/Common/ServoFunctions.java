@@ -12,8 +12,9 @@ public class ServoFunctions {
     private MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
-    private Servo fingerServoTop = null;
-    private Servo fingerServoBottom = null;
+    private static final double PixelReleaseInitialPosition = 0.13;
+    static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
+
     public class ServoInfo
     {
         public String name;
@@ -28,7 +29,6 @@ public class ServoFunctions {
         }
     }
     public List<ServoInfo> servoList;
-    static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
     public ServoFunctions(LinearOpMode l, DrivingFunctions df, MotorFunctions mf)
     {
         lom = l;
@@ -46,7 +46,7 @@ public class ServoFunctions {
             servoName = "PixelReleaseServo";
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
-                rangeStart= 0.11;
+                rangeStart= 0.0;
                 rangeEnd = 0.76;
             }
             else {
@@ -55,40 +55,18 @@ public class ServoFunctions {
             }
             pixelReleaseServo.scaleRange(rangeStart, rangeEnd);
             servoList.add(new ServoInfo(pixelReleaseServo, servoName, rangeStart, rangeEnd));
-            pixelReleaseServo.setPosition(0.0);
+            pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
         }
         catch(Exception e) {}
 
         try {
             servoName = "PlaneLaunchServo";
             planeLaunchServo = lom.hardwareMap.get(Servo .class, servoName);
-            rangeStart = 0.0;
-            rangeEnd = 1.0;
+            rangeStart = 0.17;
+            rangeEnd = 0.48;
             servoList.add(new ServoInfo(planeLaunchServo, servoName, rangeStart, rangeEnd));
             planeLaunchServo.scaleRange(rangeStart, rangeEnd);
-            planeLaunchServo.setPosition(0.0);
-        }
-        catch(Exception e) {}
-
-        try {
-            servoName = "FingerServoBottom";
-            fingerServoBottom = lom.hardwareMap.get(Servo .class, servoName);
-            rangeStart = 0.0;
-            rangeEnd = 1.0;
-            servoList.add(new ServoInfo(fingerServoBottom, servoName, rangeStart, rangeEnd));
-            fingerServoBottom.scaleRange(rangeStart, rangeEnd);
-            fingerServoBottom.setPosition(0.0);
-        }
-        catch(Exception e) {}
-
-        try {
-            servoName = "FingerServoTop";
-            fingerServoTop = lom.hardwareMap.get(Servo .class, servoName);
-            rangeStart = 0.0;
-            rangeEnd = 1.0;
-            servoList.add(new ServoInfo(fingerServoTop, servoName, rangeStart, rangeEnd));
-            fingerServoTop.scaleRange(rangeStart, rangeEnd);
-            fingerServoTop.setPosition(0.0);
+            planeLaunchServo.setPosition(1.0);
         }
         catch(Exception e) {}
     }
@@ -96,22 +74,53 @@ public class ServoFunctions {
     {
         if(planeLaunchServo == null)
             return;
-        planeLaunchServo.setPosition(1.0);
-        lom.sleep(200);
         planeLaunchServo.setPosition(0.0);
+        lom.sleep(500);
+        planeLaunchServo.setPosition(1.0);
     }
     public double IdealDistanceFromBackdropToDeliver(int targetRow) {
         return 3.0;
     }
     public void PutPixelOnBackDrop(int targetRow)
     {
+        // If a pixel falls on the ramp while the arm is up doing a deliver, the drivers need to trigger the emergency
+        // "scoop" move, where the arm comes under the ramp and picks up the pixels
+        boolean triggerScoopMove = false;
         df.MoveRobot(0, 0, 0, 0);
-        MoveServoSmoothly(pixelReleaseServo, 0.3, 300);
+        MoveServoSmoothly(pixelReleaseServo, 0.35, 300);
         mf.MoveSlidesToRowTargetSync(0.5, targetRow);
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
         MoveServoSmoothly(pixelReleaseServo, 1.0, 200);
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
         lom.sleep(500);
-        MoveServoSmoothly(pixelReleaseServo, 0.0, 600);
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
+        if(!triggerScoopMove)
+            MoveServoSmoothly(pixelReleaseServo, PixelReleaseInitialPosition, 600);
+        else {
+            TriggerScoopArmMove();
+            return;
+        }
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
+        if(!triggerScoopMove)
+            mf.MoveSlidesToRowTargetSync(0.5, 0);
+        else
+            TriggerScoopArmMove();
+    }
+
+    private void TriggerScoopArmMove()
+    {
+        df.DriveStraight(0.5, -7, 0.0, false);
+        mf.MoveSlidesToRowTargetSync(0.5, 6);
+        pixelReleaseServo.setPosition(0.0);
+        lom.sleep(550);
+        mf.MoveSlidesToRowTargetSync(0.5, 3);
+        pixelReleaseServo.setPosition(0.03);
+        mf.MoveSlidesToRowTargetSync(0.5, 2);
+        pixelReleaseServo.setPosition(0.07);
+        mf.MoveSlidesToRowTargetSync(0.5, 1);
+        pixelReleaseServo.setPosition(0.10);
         mf.MoveSlidesToRowTargetSync(0.5, 0);
+        pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
     }
     public void MoveServoRelative(Servo s, double delta)
     {

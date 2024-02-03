@@ -87,7 +87,7 @@ public class AutonomousOpenCV extends LinearOpMode {
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
         df.DriveStraight(DRIVE_SPEED,24.5 , 0, false);
-        df.DriveStraight(DRIVE_SPEED * 0.3,8 , 0, false);
+        df.DriveStraight(DRIVE_SPEED * 0.3,6 , 0, false);
         df.DriveStraight(DRIVE_SPEED, -24.5, 0, false);
     }
     protected double PushPixelSide(boolean isRight) {
