@@ -47,7 +47,7 @@ public class ServoFunctions {
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
                 rangeStart= 0.0;
-                rangeEnd = 0.76;
+                rangeEnd = 0.75;
             }
             else {
                 rangeStart= 0.4;
