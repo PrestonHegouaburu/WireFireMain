@@ -79,7 +79,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         if(isNear)
             DriveToBackDropFromNearSide(strafeCorrection, horizontalInchesFromBackdropCenter);
         else
-            DriveToBackDropFromFarSide(strafeCorrection, horizontalInchesFromBackdropCenter);
+            DriveToBackDropFromFarSide(bp, horizontalInchesFromBackdropCenter);
 
         DeliverPixel();
         ParkRobot(horizontalInchesFromBackdropCenter);
@@ -118,11 +118,11 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED, isRed ? 19 - horizontalInchesFromBackdropCenter : 19 + horizontalInchesFromBackdropCenter, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
     }
-    private void DriveToBackDropFromFarSide(double strafeCorrection, double horizontalInchesFromBackdropCenter) {
+    private void DriveToBackDropFromFarSide(CircleDetection.BallPosition bp, double horizontalInchesFromBackdropCenter) {
         // Ends aligned with the proper AprilTag, 11" away from the backdrop
-        df.DriveStraight(DRIVE_SPEED, isRed ? -24.5 + strafeCorrection: 24.5 - strafeCorrection, 0, true);
-        df.DriveStraight(DRIVE_SPEED, 44, 0, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? 4 : -4, 0, true);
+        double horizontalMove = bp == CircleDetection.BallPosition.CENTER ? 20 : 0.0;
+        df.DriveStraight(DRIVE_SPEED, isRed ? -horizontalMove : horizontalMove, 0, true);
+        df.DriveStraight(DRIVE_SPEED, 46, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
         // Wait until there are 13 seconds left
         long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 13000;
@@ -130,7 +130,8 @@ public class AutonomousOpenCV extends LinearOpMode {
         telemetry.addData("Wait this number of milliseconds", timeToWaitMilliseconds);
         telemetry.update();
         sleep(timeToWaitMilliseconds);
-        df.DriveStraight(DRIVE_SPEED * 1.4, 93, backDropDirection, false);
+
+        df.DriveStraight(DRIVE_SPEED * 1.4, 73 + horizontalMove, backDropDirection, false);
         df.DriveStraight(DRIVE_SPEED, isRed ? 26 + horizontalInchesFromBackdropCenter : -26 + horizontalInchesFromBackdropCenter, backDropDirection, true);
     }
     protected void DeliverPixel()
