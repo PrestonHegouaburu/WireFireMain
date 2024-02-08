@@ -90,7 +90,7 @@ public class ServoFunctions {
         MoveServoSmoothly(pixelReleaseServo, 0.35, 300);
         mf.MoveSlidesToRowTargetSync(0.5, targetRow);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
-        MoveServoSmoothly(pixelReleaseServo, 1.0, 200);
+        MoveServoSmoothly(pixelReleaseServo, 0.98, 200);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
         lom.sleep(500);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;

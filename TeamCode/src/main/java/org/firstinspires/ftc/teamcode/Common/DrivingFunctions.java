@@ -282,7 +282,8 @@ public class DrivingFunctions {
         double horizontalDistance = atf.detectedTag.ftcPose.range * Math.sin(Math.toRadians(atf.detectedTag.ftcPose.yaw));
         horizontalDistance += atf.detectedTag.ftcPose.x;
 
-        DriveStraight(speedFactor, atf.detectedTag.ftcPose.range-15, GetHeading(), false);
+        if (atf.detectedTag.ftcPose.range > 15)
+            DriveStraight(speedFactor, atf.detectedTag.ftcPose.range-15, GetHeading(), false);
         if(atf.DetectAprilTag(desiredTag)) {
             horizontalDistance = atf.detectedTag.ftcPose.range * Math.sin(Math.toRadians(atf.detectedTag.ftcPose.yaw));
             horizontalDistance += atf.detectedTag.ftcPose.x;
@@ -294,9 +295,9 @@ public class DrivingFunctions {
 
         double distance = 10.0;
         // Uses the distance sensor to get to the final position
-        // If the sensor returns more than 15 inches or less than 2 inches, we assume the sensor is wrong
+        // If the sensor returns more than 18 inches or less than 2 inches, we assume the sensor is wrong
         // If the sensor is not working, it uses the latest distance estimation from the AprilTag
-        double sensorDistance = GetDistanceFromSensorInInches(2.0, 15.0);
+        double sensorDistance = GetDistanceFromSensorInInches(2.0, 18.0);
         distance = sensorDistance > 0.0 ? sensorDistance : distance;
         DriveStraight(0.5 * speedFactor, distance - desiredDistanceFromTagInches, desiredHeading, false);
 
