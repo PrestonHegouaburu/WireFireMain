@@ -12,7 +12,7 @@ public class ServoFunctions {
     private MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
-    private static final double PixelReleaseInitialPosition = 0.13;
+    private static final double PixelReleaseInitialPosition = 0.11;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
 
     public class ServoInfo
@@ -46,7 +46,7 @@ public class ServoFunctions {
             servoName = "PixelReleaseServo";
             pixelReleaseServo = lom.hardwareMap.get(Servo .class, servoName);
             if(df.isSlideRobot()) {
-                rangeStart= 0.0;
+                rangeStart= 0.03;
                 rangeEnd = 0.75;
             }
             else {
@@ -114,11 +114,11 @@ public class ServoFunctions {
         pixelReleaseServo.setPosition(0.0);
         lom.sleep(550);
         mf.MoveSlidesToRowTargetSync(0.5, 3);
-        pixelReleaseServo.setPosition(0.03);
+        pixelReleaseServo.setPosition(0.016);
         mf.MoveSlidesToRowTargetSync(0.5, 2);
-        pixelReleaseServo.setPosition(0.07);
+        pixelReleaseServo.setPosition(0.05);
         mf.MoveSlidesToRowTargetSync(0.5, 1);
-        pixelReleaseServo.setPosition(0.10);
+        pixelReleaseServo.setPosition(0.08);
         mf.MoveSlidesToRowTargetSync(0.5, 0);
         pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
     }

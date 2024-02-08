@@ -79,16 +79,16 @@ public class AutonomousOpenCV extends LinearOpMode {
         if(isNear)
             DriveToBackDropFromNearSide(strafeCorrection, horizontalInchesFromBackdropCenter);
         else
-            DriveToBackDropFromFarSide(bp, horizontalInchesFromBackdropCenter);
+            DriveToBackDropFromFarSide(bp, strafeCorrection, horizontalInchesFromBackdropCenter);
 
         DeliverPixel();
         ParkRobot(horizontalInchesFromBackdropCenter);
     }
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
-        df.DriveStraight(DRIVE_SPEED,24.5 , 0, false);
+        df.DriveStraight(DRIVE_SPEED,24 , 0, false);
         df.DriveStraight(DRIVE_SPEED * 0.3,6 , 0, false);
-        df.DriveStraight(DRIVE_SPEED, -24.5, 0, false);
+        df.DriveStraight(DRIVE_SPEED, -24, 0, false);
     }
     protected double PushPixelSide(boolean isRight) {
         // Ends in the center, 6" forward from starting point (shifted by strafeCorrection)
@@ -118,11 +118,11 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED, isRed ? 19 - horizontalInchesFromBackdropCenter : 19 + horizontalInchesFromBackdropCenter, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
     }
-    private void DriveToBackDropFromFarSide(CircleDetection.BallPosition bp, double horizontalInchesFromBackdropCenter) {
+    private void DriveToBackDropFromFarSide(CircleDetection.BallPosition bp, double strafeCorrection, double horizontalInchesFromBackdropCenter) {
         // Ends aligned with the proper AprilTag, 11" away from the backdrop
         double horizontalMove = bp == CircleDetection.BallPosition.CENTER ? 20 : 0.0;
         df.DriveStraight(DRIVE_SPEED, isRed ? -horizontalMove : horizontalMove, 0, true);
-        df.DriveStraight(DRIVE_SPEED, 46, 0, false);
+        df.DriveStraight(DRIVE_SPEED, 42, 0, false);
         df.TurnToHeading(TURN_SPEED, backDropDirection);
         // Wait until there are 13 seconds left
         long timeToWaitMilliseconds = 30000 - (long) runtime.milliseconds() - 13000;
@@ -131,8 +131,8 @@ public class AutonomousOpenCV extends LinearOpMode {
         telemetry.update();
         sleep(timeToWaitMilliseconds);
 
-        df.DriveStraight(DRIVE_SPEED * 1.4, 73 + horizontalMove, backDropDirection, false);
-        df.DriveStraight(DRIVE_SPEED, isRed ? 26 + horizontalInchesFromBackdropCenter : -26 + horizontalInchesFromBackdropCenter, backDropDirection, true);
+        df.DriveStraight(DRIVE_SPEED * 1.4, 70 + horizontalMove + Math.abs(strafeCorrection), backDropDirection, false);
+        df.DriveStraight(DRIVE_SPEED, isRed ? 27 + horizontalInchesFromBackdropCenter : -27 + horizontalInchesFromBackdropCenter, backDropDirection, true);
     }
     protected void DeliverPixel()
     {
