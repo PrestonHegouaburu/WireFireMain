@@ -195,10 +195,10 @@ public class WireFireTeleOp extends LinearOpMode {
         if (gamepad1.dpad_down || gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_right) {
             if (isRedTeam){
                 x = gamepad1.dpad_down ? -1 : (gamepad1.dpad_up ? 1 : 0);
-                y = gamepad1.dpad_left ? 1 : (gamepad1.dpad_right ? -1 : 0);
-            } else{
+                y = gamepad1.dpad_left ? -1 : (gamepad1.dpad_right ? 1 : 0);
+            } else {
                 x = gamepad1.dpad_up ? -1 : (gamepad1.dpad_down ? 1 : 0);
-                y = gamepad1.dpad_right ? 1 : (gamepad1.dpad_left ? -1 : 0);
+                y = gamepad1.dpad_right ? -1 : (gamepad1.dpad_left ? 1 : 0);
             }
 
             double botHeadingRadians = Math.toRadians(df.GetHeading());
