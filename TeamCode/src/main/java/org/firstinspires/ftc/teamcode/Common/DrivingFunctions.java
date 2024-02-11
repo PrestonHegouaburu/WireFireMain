@@ -355,7 +355,7 @@ public class DrivingFunctions {
     public double GetHeading() {
         double heading;
         if(isSlideRobot())
-            heading = -navx_device.getYaw();
+            heading = navx_device.getYaw();
         else
             heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
@@ -366,7 +366,7 @@ public class DrivingFunctions {
     public double GetRotatingSpeed() {
         double rotatingSpeed;
         if(isSlideRobot())
-            rotatingSpeed = navx_device.getWorldLinearAccelZ();
+            rotatingSpeed = -navx_device.getWorldLinearAccelZ();
         else
             rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate / 100.0;
 
