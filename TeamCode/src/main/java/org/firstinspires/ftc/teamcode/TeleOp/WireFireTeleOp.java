@@ -193,8 +193,14 @@ public class WireFireTeleOp extends LinearOpMode {
     private void FieldCentricDriving() {
         // Field centric driving is activated when any of the hat buttons are pressed
         if (gamepad1.dpad_down || gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_right) {
-            x = gamepad1.dpad_left ? -1 : (gamepad1.dpad_right ? 1 : 0);
-            y = gamepad1.dpad_up ? 1 : (gamepad1.dpad_down ? -1 : 0);
+            if (isRedTeam){
+                x = gamepad1.dpad_down ? -1 : (gamepad1.dpad_up ? 1 : 0);
+                y = gamepad1.dpad_left ? 1 : (gamepad1.dpad_right ? -1 : 0);
+            } else{
+                x = gamepad1.dpad_up ? -1 : (gamepad1.dpad_down ? 1 : 0);
+                y = gamepad1.dpad_right ? 1 : (gamepad1.dpad_left ? -1 : 0);
+            }
+
             double botHeadingRadians = Math.toRadians(df.GetHeading());
             // Rotate the movement direction counter to the bot's rotation
             double newX = x * Math.cos(-botHeadingRadians) - y * Math.sin(-botHeadingRadians);
