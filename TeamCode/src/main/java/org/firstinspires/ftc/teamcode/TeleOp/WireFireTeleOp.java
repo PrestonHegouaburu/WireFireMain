@@ -19,7 +19,7 @@ public class WireFireTeleOp extends LinearOpMode {
     protected ServoFunctions sf = null;
     protected MotorFunctions mf = null;
     protected double intakeSpeed = 1;
-    protected double speedFactor = 0.5; // Speed factor to slow down the robot, goes from 0.1 to 1.0
+    protected double speedFactor = 0.75; // Speed factor to slow down the robot, goes from 0.1 to 1.0
     protected boolean IsTestMode = false;
     protected boolean isRedTeam = true;
     protected Gamepad currentGamepad1, previousGamepad1, currentGamepad2, previousGamepad2;
@@ -57,7 +57,7 @@ public class WireFireTeleOp extends LinearOpMode {
             AutoTurning();
             ProcessTestCommands();
             ProcessPixelDelivery();
-            CheckRevertDirection();
+            //CheckRevertDirection();
             IntakeCommands();
             UpdateTelemetry();
             UpdateSlidesPosition();
@@ -157,24 +157,47 @@ public class WireFireTeleOp extends LinearOpMode {
         x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
         yaw = df.isRobotDrivingForward() ? gamepad1.right_stick_x : gamepad1.right_stick_x * -1;
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
-            speedFactor = 0.5;
+            speedFactor = 0.75;
         if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
             speedFactor = 1;
         if (!previousGamepad1.back && currentGamepad1.back)
             df.ResetYaw();
+    }
+
+    private boolean TriggerAutoRotate()
+    {
+        boolean triggerAutoRotate = ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
+                (!previousGamepad1.b && currentGamepad1.b) || (!previousGamepad1.a && currentGamepad1.a));
+        triggerAutoRotate = triggerAutoRotate || (currentGamepad1.y && currentGamepad1.b) ||
+                (currentGamepad1.x && currentGamepad1.y) || (currentGamepad1.a && currentGamepad1.b) ||
+                (currentGamepad1.x && currentGamepad1.a);
+        return triggerAutoRotate;
     }
     private void AutoTurning() {
         double kp = -0.033;
         double botHeading = df.GetHeading();
         if(gamepad1.start)
             return;
-        if (!isAutoTurning &&
-                ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
-                        (!previousGamepad1.b && currentGamepad1.b) || (!previousGamepad1.a && currentGamepad1.a))) {
+        if (TriggerAutoRotate()) {
             isAutoTurning = true;
-            autoTurningTarget = currentGamepad1.y ? (isRedTeam ? 90 : -90) :
-                    currentGamepad1.x ? (isRedTeam ? 180 : 0) :
-                            currentGamepad1.b ? (isRedTeam ? 0 : 180) : (isRedTeam ? -90 : 90);
+            if (currentGamepad1.y && currentGamepad1.b)
+                autoTurningTarget = 45;
+            else if (currentGamepad1.x && currentGamepad1.y)
+                autoTurningTarget = 135;
+            else if (currentGamepad1.a && currentGamepad1.b)
+                autoTurningTarget = -45;
+            else if(currentGamepad1.x && currentGamepad1.a)
+                autoTurningTarget = -135;
+            else if(currentGamepad1.y)
+                autoTurningTarget = 90;
+            else if(currentGamepad1.x)
+                autoTurningTarget = 180;
+            else if(currentGamepad1.b)
+                autoTurningTarget = 0;
+            else // this is A
+                autoTurningTarget = -90;
+
+            autoTurningStart = isRedTeam ? autoTurningTarget : autoTurningTarget + 180;
             autoTurningStart = runtime.milliseconds();
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 350;
@@ -243,6 +266,14 @@ public class WireFireTeleOp extends LinearOpMode {
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("Backdrop Row Target", "%2d", rowTarget);
         telemetry.addData("Backdrop Column", "%2d", columnTarget);
+        if(currentGamepad1.x)
+            telemetry.addLine("X Pressed");
+        if(currentGamepad1.a)
+            telemetry.addLine("A Pressed");
+        if(currentGamepad1.b)
+            telemetry.addLine("B Pressed");
+        if(currentGamepad1.y)
+            telemetry.addLine("Y Pressed");
         telemetry.update();
     }
 }

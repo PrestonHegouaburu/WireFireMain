@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Common;
 
 import com.kauailabs.navx.ftc.AHRS;
+import com.kauailabs.navx.ftc.navXPIDController;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -24,6 +25,7 @@ public class DrivingFunctions {
     private boolean drivingForward = true;
     private IMU imu = null;
     private AHRS navx_device;
+    private navXPIDController yawPIDController;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
     private final ElapsedTime runtime = new ElapsedTime();
@@ -200,6 +202,39 @@ public class DrivingFunctions {
         rightBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    public void TurnToHeading2(double maxTurnSpeed, double heading) {
+        try {
+            navXPIDController yawPIDController = new navXPIDController(navx_device,
+                    navXPIDController.navXTimestampedDataSource.YAW);
+
+            /* Configure the PID controller */
+            yawPIDController.setSetpoint(heading);
+            yawPIDController.setContinuous(true);
+            yawPIDController.setOutputRange(-maxTurnSpeed, maxTurnSpeed);
+            yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, 2);
+            yawPIDController.setPID(0.005, 0, 0);
+            yawPIDController.enable(true);
+            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
+            double currentTime = runtime.milliseconds();
+            while (runtime.milliseconds() - currentTime < 3000 && !Thread.currentThread().isInterrupted()) {
+                if (yawPIDController.waitForNewUpdate(yawPIDResult, 500)) {
+                    if (yawPIDResult.isOnTarget()) {
+                        break;
+                    }
+                    else {
+                        // Pivot in place by applying the turning correction
+                        MoveRobot(0, 0, yawPIDResult.getOutput(), 1.0);
+                    }
+                }
+            }
+        }
+        catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        // Stop all motion;
+        StopMotors();
+    }
+
     /**
      *  Spin on the central axis to point in a new direction.
      *  Move will stop if either of these conditions occur:
@@ -357,7 +392,7 @@ public class DrivingFunctions {
         if(isSlideRobot())
             heading = navx_device.getYaw();
         else
-            heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+            heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         if(isRobotDrivingForward())
             heading = heading * -1;
@@ -368,7 +403,7 @@ public class DrivingFunctions {
         if(isSlideRobot())
             rotatingSpeed = -navx_device.getWorldLinearAccelZ();
         else
-            rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate / 100.0;
+            rotatingSpeed = -imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate / 100.0;
 
 
         if(isRobotDrivingForward())
