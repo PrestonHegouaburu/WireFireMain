@@ -172,9 +172,9 @@ public class WireFireTeleOp extends LinearOpMode {
                 ((!previousGamepad1.y && currentGamepad1.y) || (!previousGamepad1.x && currentGamepad1.x) ||
                         (!previousGamepad1.b && currentGamepad1.b) || (!previousGamepad1.a && currentGamepad1.a))) {
             isAutoTurning = true;
-            autoTurningTarget = currentGamepad1.y ? (isRedTeam ? -90 : 90) :
+            autoTurningTarget = currentGamepad1.y ? (isRedTeam ? 90 : -90) :
                     currentGamepad1.x ? (isRedTeam ? 180 : 0) :
-                            currentGamepad1.b ? (isRedTeam ? 0 : 180) : (isRedTeam ? 90 : -90);
+                            currentGamepad1.b ? (isRedTeam ? 0 : 180) : (isRedTeam ? -90 : 90);
             autoTurningStart = runtime.milliseconds();
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 350;
