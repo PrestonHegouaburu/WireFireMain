@@ -197,7 +197,7 @@ public class WireFireTeleOp extends LinearOpMode {
             else // this is A
                 autoTurningTarget = -90;
 
-            autoTurningStart = isRedTeam ? autoTurningTarget : autoTurningTarget + 180;
+            autoTurningTarget = isRedTeam ? autoTurningTarget : autoTurningTarget + 180;
             autoTurningStart = runtime.milliseconds();
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 350;
@@ -222,8 +222,8 @@ public class WireFireTeleOp extends LinearOpMode {
                 x = gamepad1.dpad_down ? 1 : (gamepad1.dpad_up ? -1 : 0);
                 y = gamepad1.dpad_left ? -1 : (gamepad1.dpad_right ? 1 : 0);
             } else {
-                x = gamepad1.dpad_up ? -1 : (gamepad1.dpad_down ? 1 : 0);
-                y = gamepad1.dpad_right ? -1 : (gamepad1.dpad_left ? 1 : 0);
+                x = gamepad1.dpad_down ? -1 : (gamepad1.dpad_up ? 1 : 0);
+                y = gamepad1.dpad_left ? 1 : (gamepad1.dpad_right ? -1 : 0);
             }
 
             double botHeadingRadians = Math.toRadians(df.GetHeading());
