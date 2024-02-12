@@ -252,28 +252,14 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     protected void UpdateTelemetry() {
         telemetry.addData("Heading", "%4.2f", df.GetHeading());
-        telemetry.addData("Rotating Speed", "%4.2f", df.GetRotatingSpeed());
         telemetry.addData("TargetAprilTag", "%d", targetAprilTag);
         telemetry.addData("Detected AprilTag ID",  "%2d", af.DetectAprilTag(targetAprilTag) ? targetAprilTag : -1);
         telemetry.addData("AprilTag Range", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.range : -1);
-        telemetry.addData("AprilTag X distance", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.x : -1);
-        telemetry.addData("AprilTag Y distance", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.y : -1);
-        telemetry.addData("AprilTag Bearing", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.bearing : -1);
-        telemetry.addData("AprilTag Yaw", "%4.2f", af.detectedTag != null ? af.detectedTag.ftcPose.yaw : -1);
-
         telemetry.addData("Distance (Sensor)", "%4.2f", df.GetDistanceFromSensorInInches(0.5, 80.0));
-        telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("Backdrop Row Target", "%2d", rowTarget);
         telemetry.addData("Backdrop Column", "%2d", columnTarget);
-        if(currentGamepad1.x)
-            telemetry.addLine("X Pressed");
-        if(currentGamepad1.a)
-            telemetry.addLine("A Pressed");
-        if(currentGamepad1.b)
-            telemetry.addLine("B Pressed");
-        if(currentGamepad1.y)
-            telemetry.addLine("Y Pressed");
+
         telemetry.update();
     }
 }
