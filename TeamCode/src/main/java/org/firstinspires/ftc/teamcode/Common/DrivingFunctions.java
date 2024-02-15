@@ -22,10 +22,8 @@ public class DrivingFunctions {
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
     private DistanceSensor distanceSensor = null;
-    private boolean drivingForward = true;
     private IMU imu = null;
-    private AHRS navx_device;
-    private navXPIDController yawPIDController;
+    //private AHRS navx_device;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
     private final ElapsedTime runtime = new ElapsedTime();
@@ -57,7 +55,6 @@ public class DrivingFunctions {
     {
         return !isRobotA;
     }
-    public boolean isRobotDrivingForward() {return drivingForward;}
     private void Initialize() {
         DetermineWhatRobotThisIs();
         // Initialize the hardware variables. Note that the strings used here must correspond
@@ -73,18 +70,18 @@ public class DrivingFunctions {
         catch(Exception e) {
         }
 
-        if(isSlideRobot()) {
-            navx_device = AHRS.getInstance(lom.hardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData);
-        }
-        else {
-            imu = lom.hardwareMap.get(IMU.class, "imu");
-            // Adjust the orientation parameters to match your robot
-            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    isSlideRobot() ? RevHubOrientationOnRobot.LogoFacingDirection.LEFT : RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    isSlideRobot() ? RevHubOrientationOnRobot.UsbFacingDirection.FORWARD : RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+//        if(isSlideRobot()) {
+//            navx_device = AHRS.getInstance(lom.hardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData);
+//        }
+//        else {
+        imu = lom.hardwareMap.get(IMU.class, "imu");
+        // Adjust the orientation parameters to match your robot
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+            isSlideRobot() ? RevHubOrientationOnRobot.LogoFacingDirection.LEFT : RevHubOrientationOnRobot.LogoFacingDirection.UP,
+            isSlideRobot() ? RevHubOrientationOnRobot.UsbFacingDirection.FORWARD : RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
             // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
             imu.initialize(parameters);
-        }
+//        }
         SetDirectionForward();
         // Ensure the robot is stationary.  Reset the encoders and set the motors to BRAKE mode
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -100,18 +97,10 @@ public class DrivingFunctions {
     }
 
     public void SetDirectionForward() {
-        drivingForward = true;
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(isSlideRobot() ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-    }
-    public void SetDirectionBackward() {
-        drivingForward = false;
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(isSlideRobot() ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
     }
     public double GetDistanceFromSensorInInches(double minExpectedDistance, double maxExpectedDistance) {
         if (distanceSensor == null)
@@ -122,9 +111,9 @@ public class DrivingFunctions {
     }
     public void ResetYaw()
     {
-        if(isSlideRobot())
-            navx_device.zeroYaw();
-        else
+//        if(isSlideRobot())
+//            navx_device.zeroYaw();
+//        else
             imu.resetYaw();
     }
 
@@ -202,39 +191,6 @@ public class DrivingFunctions {
         rightBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public void TurnToHeading2(double maxTurnSpeed, double heading) {
-        try {
-            navXPIDController yawPIDController = new navXPIDController(navx_device,
-                    navXPIDController.navXTimestampedDataSource.YAW);
-
-            /* Configure the PID controller */
-            yawPIDController.setSetpoint(heading);
-            yawPIDController.setContinuous(true);
-            yawPIDController.setOutputRange(-maxTurnSpeed, maxTurnSpeed);
-            yawPIDController.setTolerance(navXPIDController.ToleranceType.ABSOLUTE, 2);
-            yawPIDController.setPID(0.005, 0, 0);
-            yawPIDController.enable(true);
-            navXPIDController.PIDResult yawPIDResult = new navXPIDController.PIDResult();
-            double currentTime = runtime.milliseconds();
-            while (runtime.milliseconds() - currentTime < 3000 && !Thread.currentThread().isInterrupted()) {
-                if (yawPIDController.waitForNewUpdate(yawPIDResult, 500)) {
-                    if (yawPIDResult.isOnTarget()) {
-                        break;
-                    }
-                    else {
-                        // Pivot in place by applying the turning correction
-                        MoveRobot(0, 0, yawPIDResult.getOutput(), 1.0);
-                    }
-                }
-            }
-        }
-        catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-        // Stop all motion;
-        StopMotors();
-    }
-
     /**
      *  Spin on the central axis to point in a new direction.
      *  Move will stop if either of these conditions occur:
@@ -256,7 +212,7 @@ public class DrivingFunctions {
         // keep looping while we are still active, and not on heading.
         while ((runtime.milliseconds() - startTime) < timeout &&
                 lom.opModeIsActive() &&
-                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 0.05)) {
+                ((Math.abs(this.headingError) > HEADING_THRESHOLD) || Math.abs(GetRotatingSpeed()) > 4.0)) {
             // Determine required steering to keep on heading
             double turnSpeed = GetSteeringCorrection(heading, P_TURN_GAIN);
 
@@ -389,25 +345,19 @@ public class DrivingFunctions {
     }
     public double GetHeading() {
         double heading;
-        if(isSlideRobot())
-            heading = navx_device.getYaw();
-        else
-            heading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+//        if(isSlideRobot())
+//            heading = -navx_device.getYaw();
+//        else
+        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-        if(isRobotDrivingForward())
-            heading = heading * -1;
         return heading;
     }
     public double GetRotatingSpeed() {
         double rotatingSpeed;
-        if(isSlideRobot())
-            rotatingSpeed = -navx_device.getWorldLinearAccelZ();
-        else
-            rotatingSpeed = -imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate / 100.0;
+//        if(isSlideRobot())
+//            rotatingSpeed = navx_device.getWorldLinearAccelZ();
+        rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
 
-
-        if(isRobotDrivingForward())
-            rotatingSpeed = rotatingSpeed * -1;
         return rotatingSpeed;
     }
 

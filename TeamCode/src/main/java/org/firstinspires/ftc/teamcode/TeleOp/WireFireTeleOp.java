@@ -57,7 +57,6 @@ public class WireFireTeleOp extends LinearOpMode {
             AutoTurning();
             ProcessTestCommands();
             ProcessPixelDelivery();
-            //CheckRevertDirection();
             IntakeCommands();
             UpdateTelemetry();
             UpdateSlidesPosition();
@@ -89,21 +88,11 @@ public class WireFireTeleOp extends LinearOpMode {
             mf.SetIntakePower(0);
 
     }
-    private void CheckRevertDirection() {
-        if (previousGamepad1.left_trigger < 0.5 && currentGamepad1.left_trigger > 0.5) {
-            if (df.isRobotDrivingForward())
-                df.SetDirectionBackward();
-            else
-                df.SetDirectionForward();
-        }
-    }
     private void ProcessPixelDelivery() {
         if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
              sf.PutPixelOnBackDrop(rowTarget);
 
-        if (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5) {
-            // Auto-aligning only works in the forward direction
-            df.SetDirectionForward();
+        if ((!previousGamepad2.back && currentGamepad2.back) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
             double horizontalShift = columnTarget % 2 == 0 ? 1 : -1;
             if(!df.DriveToAprilTagTeleop(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
@@ -153,9 +142,9 @@ public class WireFireTeleOp extends LinearOpMode {
         targetAprilTag = isRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
     }
     private void RobotCentricDriving() {
-        y = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-        x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-        yaw = df.isRobotDrivingForward() ? gamepad1.right_stick_x : gamepad1.right_stick_x * -1;
+        y = gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+        x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        yaw = gamepad1.right_stick_x;
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
             speedFactor = 0.75;
         if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
@@ -197,7 +186,7 @@ public class WireFireTeleOp extends LinearOpMode {
             else // this is A
                 autoTurningTarget = -90;
 
-            autoTurningTarget = isRedTeam ? autoTurningTarget : autoTurningTarget + 180;
+            autoTurningTarget = isRedTeam ? autoTurningTarget + 180 : autoTurningTarget;
             autoTurningStart = runtime.milliseconds();
             double totalDeltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
             autoTurningTimeoutMilliseconds = Math.abs(totalDeltaDegrees) / 180 * 3000 + 350;
@@ -205,7 +194,7 @@ public class WireFireTeleOp extends LinearOpMode {
         if (isAutoTurning) {
             double currentTime = runtime.milliseconds();
             double deltaDegrees = (autoTurningTarget - botHeading + 540) % 360 - 180;
-            if ((Math.abs(deltaDegrees) < 1.0 && Math.abs(df.GetRotatingSpeed()) < 0.05) || (currentTime - autoTurningStart > autoTurningTimeoutMilliseconds)) {
+            if ((Math.abs(deltaDegrees) < 2.0 && Math.abs(df.GetRotatingSpeed()) < 4.0) || (currentTime - autoTurningStart > autoTurningTimeoutMilliseconds)) {
                 isAutoTurning = false;
             } else {
                 yaw = kp * deltaDegrees / speedFactor;
@@ -235,7 +224,7 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     private void CheckPlaneLaunch() {
-        if (!previousGamepad2.back && currentGamepad2.back) {
+        if (!previousGamepad1.start && currentGamepad1.start) {
             // If we are playing the real game, only launch the plane in the last 30 seconds
             // (during "End game", after the first 90 minutes of regular Teleop passed)
             // From Game Manual 1: End Game – The last thirty seconds of the two-minute (2:00) Driver-Controlled Period

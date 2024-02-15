@@ -12,7 +12,7 @@ public class ServoFunctions {
     private MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
-    private static final double PixelReleaseInitialPosition = 0.11;
+    private static final double PixelReleaseInitialPosition = 0.12;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
 
     public class ServoInfo

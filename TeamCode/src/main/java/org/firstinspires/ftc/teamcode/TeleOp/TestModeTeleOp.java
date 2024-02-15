@@ -10,7 +10,6 @@ public class TestModeTeleOp extends WireFireTeleOp {
     }
     @Override
     protected void UpdateTelemetry() {
-        telemetry.addData("Driving Direction", df.isRobotDrivingForward() ? "Forward" : "Backward");
         telemetry.addData("Speed Factor", "%4.2f", speedFactor);
         telemetry.addData("IntakeSpeed", "%4.2f", intakeSpeed);
         telemetry.addData("Left Slide Position", "%4.2f", mf.GetLeftSlidePosition());
