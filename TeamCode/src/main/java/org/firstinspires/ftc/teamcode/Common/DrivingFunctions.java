@@ -23,7 +23,7 @@ public class DrivingFunctions {
     private DcMotor rightBackDrive = null;
     private DistanceSensor distanceSensor = null;
     private IMU imu = null;
-    //private AHRS navx_device;
+    private AHRS navx_device;
     private LinearOpMode lom = null;
     private double headingError = 0.0;
     private final ElapsedTime runtime = new ElapsedTime();
@@ -70,18 +70,18 @@ public class DrivingFunctions {
         catch(Exception e) {
         }
 
-//        if(isSlideRobot()) {
-//            navx_device = AHRS.getInstance(lom.hardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData);
-//        }
-//        else {
-        imu = lom.hardwareMap.get(IMU.class, "imu");
+        if(isSlideRobot()) {
+            navx_device = AHRS.getInstance(lom.hardwareMap.get(NavxMicroNavigationSensor.class, "navx"), AHRS.DeviceDataType.kProcessedData);
+        }
+        else {
+            imu = lom.hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-            isSlideRobot() ? RevHubOrientationOnRobot.LogoFacingDirection.LEFT : RevHubOrientationOnRobot.LogoFacingDirection.UP,
-            isSlideRobot() ? RevHubOrientationOnRobot.UsbFacingDirection.FORWARD : RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
-            // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-            imu.initialize(parameters);
-//        }
+            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                isSlideRobot() ? RevHubOrientationOnRobot.LogoFacingDirection.LEFT : RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                isSlideRobot() ? RevHubOrientationOnRobot.UsbFacingDirection.FORWARD : RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
+                // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+                imu.initialize(parameters);
+        }
         SetDirectionForward();
         // Ensure the robot is stationary.  Reset the encoders and set the motors to BRAKE mode
         leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -111,9 +111,9 @@ public class DrivingFunctions {
     }
     public void ResetYaw()
     {
-//        if(isSlideRobot())
-//            navx_device.zeroYaw();
-//        else
+        if(isSlideRobot())
+            navx_device.zeroYaw();
+        else
             imu.resetYaw();
     }
 
@@ -345,18 +345,19 @@ public class DrivingFunctions {
     }
     public double GetHeading() {
         double heading;
-//        if(isSlideRobot())
-//            heading = -navx_device.getYaw();
-//        else
-        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        if(isSlideRobot())
+            heading = -navx_device.getYaw();
+        else
+            heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         return heading;
     }
     public double GetRotatingSpeed() {
         double rotatingSpeed;
-//        if(isSlideRobot())
-//            rotatingSpeed = navx_device.getWorldLinearAccelZ();
-        rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
+        if(isSlideRobot())
+            rotatingSpeed = navx_device.getWorldLinearAccelZ() * 100.0;
+        else
+            rotatingSpeed = imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
 
         return rotatingSpeed;
     }
