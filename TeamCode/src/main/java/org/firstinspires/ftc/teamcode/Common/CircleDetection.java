@@ -12,14 +12,13 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 public class CircleDetection implements VisionProcessor {
-    public enum BallPosition {LEFT, CENTER, RIGHT, UNDEFINED};
-    private boolean detectionRed = true;
-    private Mat hsvMaskedMat = new Mat();
-    private Mat mask = new Mat();
-    private Mat mask1 = new Mat();
-    private Mat mask2 = new Mat();
-    private Mat hsvMat = new Mat();
-    private double[] data;
+    public enum BallPosition {LEFT, CENTER, RIGHT, UNDEFINED}
+    private final boolean detectionRed;
+    private final Mat hsvMaskedMat = new Mat();
+    private final Mat mask = new Mat();
+    private final Mat mask1 = new Mat();
+    private final Mat mask2 = new Mat();
+    private final Mat hsvMat = new Mat();
     private int framesProcessed = 0;
     private int numCirclesFound = 0;
     private double circleRadius = 0;
@@ -90,6 +89,7 @@ public class CircleDetection implements VisionProcessor {
         Imgproc.HoughCircles(frame, circles, Imgproc.HOUGH_GRADIENT, 1, 300, 120, 25, 30, 70);
 
         numCirclesFound = circles.cols();
+        double[] data;
         if (numCirclesFound == 1) {
             data = circles.get(0, 0);
             circleCenter = new Point(Math.round(data[0]), Math.round(data[1])+100);

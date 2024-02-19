@@ -12,14 +12,12 @@ import org.firstinspires.ftc.teamcode.Common.ServoFunctions;
 @TeleOp(name="Calibrate Servos", group="Test TeleOp")
 public class CalibrateServos extends LinearOpMode {
     private ServoFunctions sf;
-    private DrivingFunctions df;
     private int currentServoIndex;
     private Gamepad currentGamepad1, previousGamepad1;
     private void Init() {
         currentGamepad1 = new Gamepad();
         previousGamepad1 = new Gamepad();
-
-        df = new DrivingFunctions(this);
+        DrivingFunctions df = new DrivingFunctions(this);
         sf = new ServoFunctions(this, df, new MotorFunctions(this));
         if(sf.servoList.size() == 0) {
             telemetry.addLine("No Servos found on this robot -- terminating");

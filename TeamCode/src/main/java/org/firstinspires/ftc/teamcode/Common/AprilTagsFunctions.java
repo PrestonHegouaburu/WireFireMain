@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AprilTagsFunctions {
-    private LinearOpMode lom;
+    private final LinearOpMode lom;
     public CircleDetection circleDetection;
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
@@ -147,7 +147,7 @@ public class AprilTagsFunctions {
         lom.telemetry.addData("Total Left", circleDetection.totalLeft);
         lom.telemetry.addData("Total Center", circleDetection.totalCenter);
         lom.telemetry.addData("Total Right", circleDetection.totalRight);
-        lom.telemetry.addData("FPS", String.format("%.2f", visionPortal.getFps()));
+        lom.telemetry.addData("FPS", "%4.2f", visionPortal.getFps());
         lom.telemetry.addData("Circles detected", "%d", circleDetection.NumCirclesFound());
         lom.telemetry.addData("Circle center", "%4.0f, %4.0f", circleDetection.CircleCenter().x, circleDetection.CircleCenter().y);
         lom.telemetry.addData("Circle radius", "%4.2f", circleDetection.CircleRadius());

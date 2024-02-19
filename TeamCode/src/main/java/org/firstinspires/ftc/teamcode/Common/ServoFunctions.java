@@ -7,15 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServoFunctions {
-    private LinearOpMode lom = null;
-    private DrivingFunctions df;
-    private MotorFunctions mf;
+    private final LinearOpMode lom;
+    private final DrivingFunctions df;
+    private final MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
     private static final double PixelReleaseInitialPosition = 0.12;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
 
-    public class ServoInfo
+    static public class ServoInfo
     {
         public String name;
         public Servo s;
@@ -40,7 +40,7 @@ public class ServoFunctions {
     {
         double rangeStart, rangeEnd;
         String servoName;
-        servoList = new ArrayList<ServoInfo>();
+        servoList = new ArrayList<>();
 
         try {
             servoName = "PixelReleaseServo";
@@ -85,11 +85,11 @@ public class ServoFunctions {
     {
         // If a pixel falls on the ramp while the arm is up doing a deliver, the drivers need to trigger the emergency
         // "scoop" move, where the arm comes under the ramp and picks up the pixels
-        boolean triggerScoopMove = false;
+        boolean triggerScoopMove;
         df.MoveRobot(0, 0, 0, 0);
         MoveServoSmoothly(pixelReleaseServo, 0.35, 300);
         mf.MoveSlidesToRowTargetSync(0.5, targetRow);
-        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a;
         MoveServoSmoothly(pixelReleaseServo, 0.98, 200);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
         lom.sleep(500);
@@ -100,7 +100,7 @@ public class ServoFunctions {
             TriggerScoopArmMove();
             return;
         }
-        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
+        triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a;
         if(!triggerScoopMove)
             mf.MoveSlidesToRowTargetSync(0.5, 0);
         else
@@ -109,17 +109,22 @@ public class ServoFunctions {
 
     private void TriggerScoopArmMove()
     {
+        double slidesDownSpeed = 0.6;
         df.DriveStraight(0.5, -7, 0.0, false);
         mf.MoveSlidesToRowTargetSync(0.5, 6);
         pixelReleaseServo.setPosition(0.0);
         lom.sleep(550);
-        mf.MoveSlidesToRowTargetSync(0.5, 3);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 3);
         pixelReleaseServo.setPosition(0.016);
-        mf.MoveSlidesToRowTargetSync(0.5, 2);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 2);
         pixelReleaseServo.setPosition(0.05);
-        mf.MoveSlidesToRowTargetSync(0.5, 1);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1.5);
         pixelReleaseServo.setPosition(0.08);
-        mf.MoveSlidesToRowTargetSync(0.5, 0);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1);
+        pixelReleaseServo.setPosition(0.09);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0.5);
+        pixelReleaseServo.setPosition(0.097);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0);
         pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
     }
     public void MoveServoRelative(Servo s, double delta)

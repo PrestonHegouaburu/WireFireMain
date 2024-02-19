@@ -133,10 +133,10 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     private void SetTargetAprilTag() {
-        int redAprilTagMapping[] = {AprilTagsFunctions.TAG_RED_LEFT, AprilTagsFunctions.TAG_RED_LEFT,
+        int[] redAprilTagMapping = {AprilTagsFunctions.TAG_RED_LEFT, AprilTagsFunctions.TAG_RED_LEFT,
                 AprilTagsFunctions.TAG_RED_CENTER, AprilTagsFunctions.TAG_RED_CENTER,
                 AprilTagsFunctions.TAG_RED_RIGHT, AprilTagsFunctions.TAG_RED_RIGHT,AprilTagsFunctions.TAG_RED_RIGHT};
-        int blueAprilTagMapping[] = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
+        int[] blueAprilTagMapping = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
                 AprilTagsFunctions.TAG_BLUE_CENTER, AprilTagsFunctions.TAG_BLUE_CENTER,
                 AprilTagsFunctions.TAG_BLUE_RIGHT, AprilTagsFunctions.TAG_BLUE_RIGHT,AprilTagsFunctions.TAG_BLUE_RIGHT};
         targetAprilTag = isRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
@@ -202,7 +202,6 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     protected void ProcessTestCommands() {
-        return;
     }
     private void FieldCentricDriving() {
         // Field centric driving is activated when any of the hat buttons are pressed
