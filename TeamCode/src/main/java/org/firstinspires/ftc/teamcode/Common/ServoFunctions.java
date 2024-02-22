@@ -121,9 +121,9 @@ public class ServoFunctions {
         mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1.5);
         pixelReleaseServo.setPosition(0.08);
         mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1);
-        pixelReleaseServo.setPosition(0.09);
+        pixelReleaseServo.setPosition(0.096);
         mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0.5);
-        pixelReleaseServo.setPosition(0.097);
+        pixelReleaseServo.setPosition(0.12);
         mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0);
         pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
     }
