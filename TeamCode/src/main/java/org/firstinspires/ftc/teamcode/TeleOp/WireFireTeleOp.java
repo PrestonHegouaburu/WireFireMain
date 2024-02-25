@@ -89,10 +89,10 @@ public class WireFireTeleOp extends LinearOpMode {
 
     }
     private void ProcessPixelDelivery() {
-        if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
+        if (!previousGamepad2.back && currentGamepad2.back && !currentGamepad2.b && !currentGamepad2.a)
              sf.PutPixelOnBackDrop(rowTarget);
 
-        if ((!previousGamepad2.back && currentGamepad2.back) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
+        if ((!previousGamepad2.start && currentGamepad2.start) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
             double horizontalShift = columnTarget % 2 == 0 ? 1 : -1;
             if(!df.DriveToAprilTagTeleop(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
