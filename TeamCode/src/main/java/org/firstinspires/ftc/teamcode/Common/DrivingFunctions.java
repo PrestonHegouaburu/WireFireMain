@@ -227,7 +227,7 @@ public class DrivingFunctions {
     /* Assumes that the robot is in a position to see the desired tag, and fully squared parallel to the backdrop. If it can't see the desired tag, it returns false.
     After successfully driving to the desired tag (aligning perfectly so it is facing it directly at the desired distance, it returns true
      */
-    public boolean DriveToAprilTagAutonomous(AprilTagsFunctions atf, double desiredHeading, int desiredTag,
+    public boolean DriveToAprilTagAutonomous(AprilTagsFunctions atf, double horizontalOffset, double desiredHeading, int desiredTag,
                                    double desiredDistanceFromTagInches, double speedFactor) {
         // Strafes left or right to align to target
         if(!atf.DetectAprilTag(desiredTag))
@@ -245,7 +245,7 @@ public class DrivingFunctions {
 
         // Strafes left or right to align to target once again
         if(atf.DetectAprilTag(desiredTag))
-            DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x, desiredHeading, true);
+            DriveStraight(0.7 * speedFactor, atf.detectedTag.ftcPose.x + horizontalOffset, desiredHeading, true);
 
         // Uses the distance sensor to get to the final position
         // If the sensor returns more than 15 inches or less than 2 inches, we assume the sensor is wrong
