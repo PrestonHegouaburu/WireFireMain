@@ -91,10 +91,10 @@ public class WireFireTeleOp extends LinearOpMode {
 
     }
     private void ProcessPixelDelivery() {
-        if (!previousGamepad2.start && currentGamepad2.start && !currentGamepad2.b && !currentGamepad2.a)
+        if (!previousGamepad2.back && currentGamepad2.back && !currentGamepad2.b && !currentGamepad2.a)
              sf.PutPixelOnBackDrop(rowTarget);
 
-        if ((!previousGamepad2.back && currentGamepad2.back) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
+        if ((!previousGamepad2.start && currentGamepad2.start) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
             double horizontalShift = columnTarget % 2 == 0 ? 1 : -1;
             if(!df.DriveToAprilTagTeleop(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
                 return;
@@ -135,10 +135,10 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     private void SetTargetAprilTag() {
-        int redAprilTagMapping[] = {AprilTagsFunctions.TAG_RED_LEFT, AprilTagsFunctions.TAG_RED_LEFT,
+        int[] redAprilTagMapping = {AprilTagsFunctions.TAG_RED_LEFT, AprilTagsFunctions.TAG_RED_LEFT,
                 AprilTagsFunctions.TAG_RED_CENTER, AprilTagsFunctions.TAG_RED_CENTER,
                 AprilTagsFunctions.TAG_RED_RIGHT, AprilTagsFunctions.TAG_RED_RIGHT,AprilTagsFunctions.TAG_RED_RIGHT};
-        int blueAprilTagMapping[] = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
+        int[] blueAprilTagMapping = {AprilTagsFunctions.TAG_BLUE_LEFT, AprilTagsFunctions.TAG_BLUE_LEFT,
                 AprilTagsFunctions.TAG_BLUE_CENTER, AprilTagsFunctions.TAG_BLUE_CENTER,
                 AprilTagsFunctions.TAG_BLUE_RIGHT, AprilTagsFunctions.TAG_BLUE_RIGHT,AprilTagsFunctions.TAG_BLUE_RIGHT};
         targetAprilTag = isRedTeam ? redAprilTagMapping[columnTarget -1] : blueAprilTagMapping[columnTarget -1];
@@ -204,7 +204,6 @@ public class WireFireTeleOp extends LinearOpMode {
         }
     }
     protected void ProcessTestCommands() {
-        return;
     }
     private void FieldCentricDriving() {
         // Field centric driving is activated when any of the hat buttons are pressed

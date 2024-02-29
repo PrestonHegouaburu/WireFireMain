@@ -58,21 +58,24 @@ public class AutonomousOpenCV extends LinearOpMode {
 
         CircleDetection.BallPosition bp = DetectBallPosition(3);
 
-        double horizontalInchesFromBackdropCenter = 0;
+        double horizontalInchesFromBackdropCenter, horizontalOffsetDelivery;
         double strafeCorrection = 0;
 
         if(bp == CircleDetection.BallPosition.LEFT) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             strafeCorrection = PushPixelSide(false);
-            horizontalInchesFromBackdropCenter = -7;
+            horizontalInchesFromBackdropCenter = -6;
+            horizontalOffsetDelivery = -3;
         } else if(bp == CircleDetection.BallPosition.CENTER) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
             horizontalInchesFromBackdropCenter = 0;
+            horizontalOffsetDelivery = -1;
         } else { // Right
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_RIGHT : AprilTagsFunctions.TAG_BLUE_RIGHT;
             strafeCorrection = PushPixelSide(true);
-            horizontalInchesFromBackdropCenter = 7;
+            horizontalInchesFromBackdropCenter = 6;
+            horizontalOffsetDelivery = 1;
         }
         backDropDirection = isRed ? -90.0 : 90.0;
 
@@ -81,8 +84,8 @@ public class AutonomousOpenCV extends LinearOpMode {
         else
             DriveToBackDropFromFarSide(bp, strafeCorrection, horizontalInchesFromBackdropCenter);
 
-        DeliverPixel();
-        ParkRobot(horizontalInchesFromBackdropCenter);
+        DeliverPixel(horizontalOffsetDelivery);
+        ParkRobot(horizontalInchesFromBackdropCenter+horizontalOffsetDelivery);
     }
     private void PushPixelCenter() {
         // Ends in the center, 6" forward from starting point
@@ -102,14 +105,14 @@ public class AutonomousOpenCV extends LinearOpMode {
         else
           angle = isRight ? -40 : 40;
         if (!movingAwayFromTruss)
-            df.DriveStraight(DRIVE_SPEED, isRight ? -10 : 10, 0, true);
+            df.DriveStraight(DRIVE_SPEED, isRight ? -12 : 12, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 12 : 18 , angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? 12 : 19 , angle, false);
         df.DriveStraight(DRIVE_SPEED * 0.3, 8, angle, false);
-        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -20 : -26, angle, false);
+        df.DriveStraight(DRIVE_SPEED, movingAwayFromTruss ? -20 : -27, angle, false);
         df.TurnToHeading(TURN_SPEED,0);
         if (!movingAwayFromTruss) // if it strafed, it returns the distance it did, for later correction
-            strafeCorrection = 10.0;
+            strafeCorrection = 12.0;
         return strafeCorrection;
     }
     private void DriveToBackDropFromNearSide(double strafeCorrection, double horizontalInchesFromBackdropCenter) {
@@ -134,14 +137,14 @@ public class AutonomousOpenCV extends LinearOpMode {
         df.DriveStraight(DRIVE_SPEED * 1.4, 70 + horizontalMove + Math.abs(strafeCorrection), backDropDirection, false);
         df.DriveStraight(DRIVE_SPEED, isRed ? 27 + horizontalInchesFromBackdropCenter : -27 + horizontalInchesFromBackdropCenter, backDropDirection, true);
     }
-    protected void DeliverPixel()
+    protected void DeliverPixel(double horizontalOffsetDelivery)
     {
         // Assumes that the robot is facing the backdrop, aligned with the correct AprilTag, 16 inches from the backdrop
         // If it is near, assumes it'll get there first, so it delivers on the first row of the backdrop.
         // If it is coming from the far side, it assumes there is a pixel from the other team already there, so it delivers in the second row (risky because it can bounce)
         int rowTarget = isNear ? 0 : 1;
 
-        if(!df.DriveToAprilTagAutonomous(af, backDropDirection, desiredTag, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
+        if(!df.DriveToAprilTagAutonomous(af, horizontalOffsetDelivery, backDropDirection, desiredTag, sf.IdealDistanceFromBackdropToDeliver(rowTarget), DRIVE_SPEED)) {
             // if the alignment through AprilTag did not complete, it uses the distance sensor to finish the approach
             double dist = df.GetDistanceFromSensorInInches(1.0, 20.0);
             if (dist > 0.0)
@@ -162,7 +165,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         // Assumes that the robot just delivered the pixel and moved back from the backdrop a bit
         // But it still in front of where the pixel was dropped, so need to correct by horizontalCorrection
         if (this.cornerPark)
-            df.DriveStraight(DRIVE_SPEED, isRed ? 26-horizontalCorrection : -26-horizontalCorrection, backDropDirection, true);
+            df.DriveStraight(DRIVE_SPEED, isRed ? 28-horizontalCorrection : -28-horizontalCorrection, backDropDirection, true);
         else
             df.DriveStraight(DRIVE_SPEED, isRed ? -26-horizontalCorrection : 26-horizontalCorrection, backDropDirection, true);
         //Pushes against the wall to end parking
