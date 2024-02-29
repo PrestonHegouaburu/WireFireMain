@@ -12,6 +12,7 @@ public class ServoFunctions {
     private MotorFunctions mf;
     private Servo pixelReleaseServo = null;
     private Servo planeLaunchServo = null;
+    private Servo planeStage2LaunchServo = null;
     private static final double PixelReleaseInitialPosition = 0.12;
     static final int     SERVO_SMOOTH_MOVE_STEPS   = 30;     // Larger is smoother, but potentially slower
 
@@ -62,6 +63,7 @@ public class ServoFunctions {
         try {
             servoName = "PlaneLaunchServo";
             planeLaunchServo = lom.hardwareMap.get(Servo .class, servoName);
+
             rangeStart = 0.17;
             rangeEnd = 0.48;
             servoList.add(new ServoInfo(planeLaunchServo, servoName, rangeStart, rangeEnd));
@@ -69,14 +71,31 @@ public class ServoFunctions {
             planeLaunchServo.setPosition(1.0);
         }
         catch(Exception e) {}
+        try {
+            servoName = "PlaneLaunch2Servo";
+            planeStage2LaunchServo = lom.hardwareMap.get(Servo .class, servoName);
+            rangeStart = 0;
+            rangeEnd = 1;
+            servoList.add(new ServoInfo(planeStage2LaunchServo, servoName, rangeStart, rangeEnd));
+            planeStage2LaunchServo.scaleRange(rangeStart, rangeEnd);
+            planeStage2LaunchServo.setPosition(1.0);
+        }
+        catch(Exception e) {}
     }
     public void LaunchPlane()
     {
         if(planeLaunchServo == null)
             return;
-        planeLaunchServo.setPosition(0.0);
+        if (planeStage2LaunchServo != null) {
+            planeStage2LaunchServo.setPosition(0);
+            lom.sleep(100);
+        }
+        planeLaunchServo.setPosition(0);
         lom.sleep(500);
         planeLaunchServo.setPosition(1.0);
+            lom.sleep(500);
+        if (planeStage2LaunchServo != null)
+            planeStage2LaunchServo.setPosition(1);
     }
     public double IdealDistanceFromBackdropToDeliver(int targetRow) {
         return 3.0;

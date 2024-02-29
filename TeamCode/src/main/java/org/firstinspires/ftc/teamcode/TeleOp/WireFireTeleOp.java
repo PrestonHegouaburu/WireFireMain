@@ -20,6 +20,8 @@ public class WireFireTeleOp extends LinearOpMode {
     protected MotorFunctions mf = null;
     protected double intakeSpeed = 1;
     protected double speedFactor = 0.75; // Speed factor to slow down the robot, goes from 0.1 to 1.0
+    protected double speedFactorMin = 0.75;
+    protected double speedFactorMax = 1;
     protected boolean IsTestMode = false;
     protected boolean isRedTeam = true;
     protected Gamepad currentGamepad1, previousGamepad1, currentGamepad2, previousGamepad2;
@@ -146,9 +148,9 @@ public class WireFireTeleOp extends LinearOpMode {
         x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
         yaw = gamepad1.right_stick_x;
         if (!previousGamepad1.left_bumper && currentGamepad1.left_bumper)
-            speedFactor = 0.75;
+            speedFactor = speedFactorMin;
         if (!previousGamepad1.right_bumper && currentGamepad1.right_bumper)
-            speedFactor = 1;
+            speedFactor = speedFactorMax;
         if (!previousGamepad1.back && currentGamepad1.back)
             df.ResetYaw();
     }
