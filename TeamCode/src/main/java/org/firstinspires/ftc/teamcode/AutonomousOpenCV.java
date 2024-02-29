@@ -167,7 +167,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         if (this.cornerPark)
             df.DriveStraight(DRIVE_SPEED, isRed ? 28-horizontalCorrection : -28-horizontalCorrection, backDropDirection, true);
         else
-            df.DriveStraight(DRIVE_SPEED, isRed ? -26-horizontalCorrection : 26-horizontalCorrection, backDropDirection, true);
+            df.DriveStraight(DRIVE_SPEED, isRed ? -28-horizontalCorrection : 28-horizontalCorrection, backDropDirection, true);
         //Pushes against the wall to end parking
         df.DriveStraight(DRIVE_SPEED, 14, backDropDirection, false);
         df.DriveStraight(DRIVE_SPEED/2, 4, backDropDirection, false);
