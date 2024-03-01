@@ -28,8 +28,8 @@ public class AutonomousOpenCV extends LinearOpMode {
     private double backDropDirection = 90.0;
     private void Initialize() {
         df = new DrivingFunctions(this);
-        mf = new MotorFunctions(this);
-        sf = new ServoFunctions(this, df, mf);
+        mf = new MotorFunctions(this, null);
+        sf = new ServoFunctions(this, df, mf, null);
         af = new AprilTagsFunctions(this, isRed);
         af.RunCircleProcessorOnly();
     }
@@ -156,7 +156,7 @@ public class AutonomousOpenCV extends LinearOpMode {
 
             df.DriveStraight(DRIVE_SPEED, dist, backDropDirection, false);
         }
-        sf.PutPixelOnBackDrop(rowTarget);
+        sf.PutPixelOnBackDrop(rowTarget, false);
         // Gets away from the board after delivering pixel
         df.DriveStraight(DRIVE_SPEED, -6, backDropDirection, false);
     }

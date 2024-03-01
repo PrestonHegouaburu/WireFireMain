@@ -4,18 +4,22 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.TeleOp.WireFireTeleOp;
+
 public class MotorFunctions {
     private final ElapsedTime runtime = new ElapsedTime();
     private DcMotor intakeMotor = null;
     private DcMotor leftLinearSlide = null;
     private DcMotor rightLinearSlide = null;
     private final LinearOpMode lom;
+    private final WireFireTeleOp wireFireTeleOp;
     private static final int MAX_DISTANCE_SLIDES = 2300;
     private static final int TICKS_PER_ROW = 200;
     private static final int FIRST_ROW_SLIDE_POSITION = 150;
     public static final int MAX_ROWS_OF_PIXELS = 10; // How high can the robot deliver pixels
-    public MotorFunctions(LinearOpMode l) {
+    public MotorFunctions(LinearOpMode l, WireFireTeleOp wireFireTeleOp) {
         lom = l;
+        this.wireFireTeleOp = wireFireTeleOp;
         Initialize();
     }
     private void Initialize() {
@@ -68,7 +72,7 @@ public class MotorFunctions {
     }
 
     /* This function is synchronous, as it waits for the whole movement to complete before returning */
-    public void MoveSlidesToRowTargetSync(double speed, double rowTarget) {
+    public void MoveSlidesToRowTargetSync(double speed, double rowTarget ,boolean keepMovingRobot) {
         if (leftLinearSlide ==  null || rightLinearSlide == null)
             return;
         double startTime = runtime.milliseconds();
@@ -79,9 +83,11 @@ public class MotorFunctions {
         rightLinearSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         MoveSlides(speed);
 
-        while(lom.opModeIsActive() && leftLinearSlide.isBusy() && rightLinearSlide.isBusy())
-            if(runtime.milliseconds() - startTime > 2000) //waits until the slides are done moving or 2 seconds
+        while(lom.opModeIsActive() && leftLinearSlide.isBusy() && rightLinearSlide.isBusy()) {
+            wireFireTeleOp.ActiveSleep(1);
+            if (runtime.milliseconds() - startTime > 2000) //waits until the slides are done moving or 2 seconds
                 break;
+        }
 
         leftLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightLinearSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

@@ -288,7 +288,7 @@ public class DrivingFunctions {
         // If the sensor is not working, it uses the latest distance estimation from the AprilTag
         double sensorDistance = GetDistanceFromSensorInInches(2.0, 18.0);
         distance = sensorDistance > 0.0 ? sensorDistance : distance;
-        DriveStraight(0.5 * speedFactor, distance - desiredDistanceFromTagInches, desiredHeading, false);
+        DriveStraight(0.4 * speedFactor, distance - desiredDistanceFromTagInches, desiredHeading, false);
 
         return true;
     }

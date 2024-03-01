@@ -3,11 +3,14 @@ package org.firstinspires.ftc.teamcode.Common;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.TeleOp.WireFireTeleOp;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServoFunctions {
     private final LinearOpMode lom;
+    private final WireFireTeleOp wireFireTeleOp;
     private final DrivingFunctions df;
     private final MotorFunctions mf;
     private Servo pixelReleaseServo = null;
@@ -30,11 +33,12 @@ public class ServoFunctions {
         }
     }
     public List<ServoInfo> servoList;
-    public ServoFunctions(LinearOpMode l, DrivingFunctions df, MotorFunctions mf)
+    public ServoFunctions(LinearOpMode l, DrivingFunctions df, MotorFunctions mf, WireFireTeleOp wireFireTeleOp)
     {
         lom = l;
         this.df = df;
         this.mf = mf;
+        this.wireFireTeleOp = wireFireTeleOp;
         Initialize();
     }
     private void Initialize()
@@ -100,70 +104,78 @@ public class ServoFunctions {
     public double IdealDistanceFromBackdropToDeliver(int targetRow) {
         return 3.0;
     }
-    public void PutPixelOnBackDrop(int targetRow)
+    public void PutPixelOnBackDrop(int targetRow, boolean keepMovingRobot)
     {
         // If a pixel falls on the ramp while the arm is up doing a deliver, the drivers need to trigger the emergency
         // "scoop" move, where the arm comes under the ramp and picks up the pixels
         boolean triggerScoopMove;
         df.MoveRobot(0, 0, 0, 0);
-        MoveServoSmoothly(pixelReleaseServo, 0.35, 300);
-        mf.MoveSlidesToRowTargetSync(0.5, targetRow);
+        MoveServoSmoothly(pixelReleaseServo, 0.35, 200, keepMovingRobot);
+        mf.MoveSlidesToRowTargetSync(0.7, targetRow, keepMovingRobot);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a;
-        MoveServoSmoothly(pixelReleaseServo, 0.98, 200);
+        MoveServoSmoothly(pixelReleaseServo, 0.98, 200, keepMovingRobot);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
-        lom.sleep(500);
+        if(keepMovingRobot && wireFireTeleOp != null)
+            wireFireTeleOp.ActiveSleep(450);
+        else
+            lom.sleep(450);
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a || triggerScoopMove;
         if(!triggerScoopMove)
-            MoveServoSmoothly(pixelReleaseServo, PixelReleaseInitialPosition, 600);
+            MoveServoSmoothly(pixelReleaseServo, PixelReleaseInitialPosition, 300, keepMovingRobot);
         else {
             TriggerScoopArmMove();
             return;
         }
         triggerScoopMove = lom.gamepad1.a || lom.gamepad2.a;
         if(!triggerScoopMove)
-            mf.MoveSlidesToRowTargetSync(0.5, 0);
+            mf.MoveSlidesToRowTargetSync(0.8, 0, keepMovingRobot);
         else
             TriggerScoopArmMove();
     }
 
     private void TriggerScoopArmMove()
     {
+        if(wireFireTeleOp == null)
+            return;
         double slidesDownSpeed = 0.6;
         df.DriveStraight(0.5, -7, 0.0, false);
-        mf.MoveSlidesToRowTargetSync(0.5, 6);
+        mf.MoveSlidesToRowTargetSync(0.5, 6, true);
         pixelReleaseServo.setPosition(0.0);
-        lom.sleep(550);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 3);
+        wireFireTeleOp.ActiveSleep(550);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 3, true);
         pixelReleaseServo.setPosition(0.016);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 2);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 2, true);
         pixelReleaseServo.setPosition(0.05);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1.5);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1.5, true);
         pixelReleaseServo.setPosition(0.08);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 1, true);
         pixelReleaseServo.setPosition(0.096);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0.5);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0.5, true);
         pixelReleaseServo.setPosition(0.12);
-        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0);
+        mf.MoveSlidesToRowTargetSync(slidesDownSpeed, 0, true);
         pixelReleaseServo.setPosition(PixelReleaseInitialPosition);
     }
     public void MoveServoRelative(Servo s, double delta)
     {
         s.setPosition(s.getPosition()+delta);
     }
-    private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds)
+    private void MoveServoSmoothly(Servo s, double endPosition, int timeInMilliseconds, boolean keepMovingRobot)
     {
         if (s == null)
             return;
 
         double stepSize = (endPosition - s.getPosition()) / SERVO_SMOOTH_MOVE_STEPS;
-        long sleepTime = timeInMilliseconds / SERVO_SMOOTH_MOVE_STEPS;
+        int sleepTime = timeInMilliseconds / SERVO_SMOOTH_MOVE_STEPS;
         double position = s.getPosition();
 
         for (int i=0; i < SERVO_SMOOTH_MOVE_STEPS; i++)
         {
             position += stepSize;
             s.setPosition(position);
-            lom.sleep(sleepTime);
+            if(keepMovingRobot && wireFireTeleOp != null)
+                wireFireTeleOp.ActiveSleep(sleepTime);
+            else
+                lom.sleep(sleepTime);
         }
         s.setPosition(endPosition);
     }

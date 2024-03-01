@@ -18,7 +18,7 @@ public class CalibrateServos extends LinearOpMode {
         currentGamepad1 = new Gamepad();
         previousGamepad1 = new Gamepad();
         DrivingFunctions df = new DrivingFunctions(this);
-        sf = new ServoFunctions(this, df, new MotorFunctions(this));
+        sf = new ServoFunctions(this, df, new MotorFunctions(this, null), null);
         if(sf.servoList.size() == 0) {
             telemetry.addLine("No Servos found on this robot -- terminating");
             telemetry.update();

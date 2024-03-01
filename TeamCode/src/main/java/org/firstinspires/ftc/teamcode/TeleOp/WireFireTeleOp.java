@@ -34,8 +34,8 @@ public class WireFireTeleOp extends LinearOpMode {
     private boolean areSlidesMovingManually = false;
     private void Init() {
         df = new DrivingFunctions(this);
-        mf = new MotorFunctions(this);
-        sf = new ServoFunctions(this, df, mf);
+        mf = new MotorFunctions(this, this);
+        sf = new ServoFunctions(this, df, mf, this);
         af = new AprilTagsFunctions(this, isRedTeam);
         af.RunAprilTagProcessorOnly();
         currentGamepad1 = new Gamepad();
@@ -52,10 +52,8 @@ public class WireFireTeleOp extends LinearOpMode {
         runtime.reset();
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            UpdateGamepad();
+            BasicDriving();
             CheckPlaneLaunch();
-            RobotCentricDriving();
-            FieldCentricDriving();
             AutoTurning();
             ProcessTestCommands();
             ProcessPixelDelivery();
@@ -66,7 +64,20 @@ public class WireFireTeleOp extends LinearOpMode {
             df.MoveRobot(x, y, yaw, speedFactor);
         }
     }
+    public void ActiveSleep(int milliseconds)
+    {
+        double sleepStart = runtime.milliseconds();
 
+        while(runtime.milliseconds() - sleepStart <= milliseconds) {
+            BasicDriving();
+            df.MoveRobot(x, y, yaw, speedFactor);
+        }
+    }
+    private void BasicDriving() {
+        UpdateGamepad();
+        RobotCentricDriving();
+        FieldCentricDriving();
+    }
     private void UpdateSlidesPosition() {
         if(areSlidesMovingManually && !gamepad2.dpad_down && !gamepad2.dpad_up) {
             areSlidesMovingManually = false;
@@ -92,14 +103,14 @@ public class WireFireTeleOp extends LinearOpMode {
     }
     private void ProcessPixelDelivery() {
         if (!previousGamepad2.back && currentGamepad2.back && !currentGamepad2.b && !currentGamepad2.a)
-             sf.PutPixelOnBackDrop(rowTarget);
+             sf.PutPixelOnBackDrop(rowTarget, true);
 
         if ((!previousGamepad2.start && currentGamepad2.start) || (previousGamepad1.right_trigger < 0.5 && currentGamepad1.right_trigger > 0.5)){
             double horizontalShift = columnTarget % 2 == 0 ? 1 : -1;
-            if(!df.DriveToAprilTagTeleop(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 0.8))
+            if(!df.DriveToAprilTagTeleop(af, 0.0, targetAprilTag, horizontalShift,sf.IdealDistanceFromBackdropToDeliver(rowTarget), 1.0))
                 return;
-            sf.PutPixelOnBackDrop(rowTarget);
-            df.DriveStraight(0.6, -6.0, df.GetHeading(), false);
+            sf.PutPixelOnBackDrop(rowTarget, false);
+            df.DriveStraight(0.8, -6.0, df.GetHeading(), false);
         }
     }
     private void SetBackdropTargets() {
