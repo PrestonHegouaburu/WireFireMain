@@ -65,7 +65,7 @@ public class AutonomousOpenCV extends LinearOpMode {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_LEFT : AprilTagsFunctions.TAG_BLUE_LEFT;
             strafeCorrection = PushPixelSide(false);
             horizontalInchesFromBackdropCenter = -6;
-            horizontalOffsetDelivery = -3;
+            horizontalOffsetDelivery = -1.5;
         } else if(bp == CircleDetection.BallPosition.CENTER) {
             desiredTag = isRed ? AprilTagsFunctions.TAG_RED_CENTER : AprilTagsFunctions.TAG_BLUE_CENTER;
             PushPixelCenter();
