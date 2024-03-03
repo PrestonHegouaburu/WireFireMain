@@ -78,8 +78,8 @@ public class ServoFunctions {
         try {
             servoName = "PlaneLaunch2Servo";
             planeStage2LaunchServo = lom.hardwareMap.get(Servo .class, servoName);
-            rangeStart = 0;
-            rangeEnd = 1;
+            rangeStart = 0.83;
+            rangeEnd = 0.98;
             servoList.add(new ServoInfo(planeStage2LaunchServo, servoName, rangeStart, rangeEnd));
             planeStage2LaunchServo.scaleRange(rangeStart, rangeEnd);
             planeStage2LaunchServo.setPosition(1.0);
@@ -92,11 +92,11 @@ public class ServoFunctions {
             return;
         if (planeStage2LaunchServo != null) {
             planeStage2LaunchServo.setPosition(0);
-            lom.sleep(100);
+            lom.sleep(300);
         }
         planeLaunchServo.setPosition(0);
         lom.sleep(500);
-        planeLaunchServo.setPosition(1.0);
+        planeLaunchServo.setPosition(1);
             lom.sleep(500);
         if (planeStage2LaunchServo != null)
             planeStage2LaunchServo.setPosition(1);
