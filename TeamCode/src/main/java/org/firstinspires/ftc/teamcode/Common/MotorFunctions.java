@@ -84,7 +84,8 @@ public class MotorFunctions {
         MoveSlides(speed);
 
         while(lom.opModeIsActive() && leftLinearSlide.isBusy() && rightLinearSlide.isBusy()) {
-            wireFireTeleOp.ActiveSleep(1);
+            if(keepMovingRobot && wireFireTeleOp != null)
+                wireFireTeleOp.ActiveSleep(1);
             if (runtime.milliseconds() - startTime > 2000) //waits until the slides are done moving or 2 seconds
                 break;
         }

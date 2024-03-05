@@ -103,7 +103,7 @@ public class AutonomousOpenCV extends LinearOpMode {
         if(movingAwayFromTruss)
           angle = isRight ? -24 : 24;
         else
-          angle = isRight ? -40 : 40;
+          angle = isRight ? -41 : 41;
         if (!movingAwayFromTruss)
             df.DriveStraight(DRIVE_SPEED, isRight ? -12 : 12, 0, true);
         df.TurnToHeading(TURN_SPEED,angle);
