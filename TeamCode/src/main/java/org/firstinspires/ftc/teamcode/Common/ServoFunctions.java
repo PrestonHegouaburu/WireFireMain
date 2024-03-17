@@ -102,7 +102,10 @@ public class ServoFunctions {
             planeStage2LaunchServo.setPosition(1);
     }
     public double IdealDistanceFromBackdropToDeliver(int targetRow) {
-        return 3.0;
+        if (wireFireTeleOp == null)
+            return 1.5;
+        else
+            return 2.5;
     }
     public void PutPixelOnBackDrop(int targetRow, boolean keepMovingRobot)
     {
